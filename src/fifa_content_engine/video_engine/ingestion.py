@@ -16,6 +16,9 @@ class VideoSource:
 
     path: Path
     duration_seconds: float | None = None
+    format_name: str | None = None
+    video_codec: str | None = None
+    scene_timestamps: tuple[float, ...] = ()
 
 
 class VideoIngestor(ABC):
