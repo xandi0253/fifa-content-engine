@@ -6,4 +6,4 @@
 
 ## Estado
 
-Foundation em validação. Estrutura inicial, configuração e smoke tests preparados. Próximo foco: concluir validação e iniciar o Video Engine.
+Foundation em validação. Estrutura inicial, configuração, documentação e smoke tests preparados. Próximo foco: concluir validação e iniciar o Video Engine.
