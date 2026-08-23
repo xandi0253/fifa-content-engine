@@ -2,14 +2,15 @@
 
 ## Sprint atual
 
-**Sprint 1 — Foundation (concluída)**
+**Sprint 2 — Video Engine (concluída)**
 
 ## Estado
 
-Estrutura completa de módulos criada (video_engine, ai_engine, content_engine,
-publishing_engine, data_layer), lint/format configurado com ruff, pipeline de
-CI no GitHub Actions (lint + format check + testes) e esqueleto inicial do
-Video Engine (interface `VideoIngestor` + `VideoSource`) com testes passando.
+Video Engine implementado com ffmpeg/ffprobe via subprocess: validação real
+de arquivos (extensão + stream de vídeo via ffprobe), normalização para
+mp4/h264/aac, e detecção de mudanças de cena usando o filtro nativo do
+ffmpeg. Tudo coberto por testes de ponta a ponta com vídeo sintético gerado
+via lavfi, sem depender de arquivos externos.
 
-Próximo foco: Sprint 2 — Video Engine (ingestão real de vídeo com FFmpeg,
-detecção de cenas, conversão).
+Próximo foco: Sprint 3 — AI Analysis (identificar momentos relevantes das
+partidas a partir dos candidatos a cena e gerar metadados de conteúdo).
