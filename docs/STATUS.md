@@ -6,4 +6,4 @@
 
 ## Estado
 
-Base inicial criada. Próximo foco: validar instalação local e preparar o Video Engine.
+Foundation em validação. Estrutura inicial, configuração e smoke tests preparados. Próximo foco: concluir validação e iniciar o Video Engine.
