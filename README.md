@@ -1,27 +1,30 @@
 # FIFA Content Engine
 
-Automação inteligente de conteúdo para FIFA 26.
+Plataforma de automação para transformar gravações de partidas de FIFA em conteúdo digital de forma inteligente.
 
 ## Objetivo
 
-Transformar gravações de partidas em conteúdo pronto para publicação, utilizando processamento de vídeo, IA, geração de texto e, posteriormente, publicação multicanal.
+O projeto não é apenas um cortador de vídeos. O objetivo é construir uma fábrica de conteúdo capaz de:
 
-## Roadmap
+- receber partidas completas;
+- analisar eventos e momentos relevantes;
+- selecionar oportunidades de conteúdo;
+- gerar vídeos curtos e outros formatos;
+- adicionar edição, legendas e identidade visual;
+- gerar títulos, descrições, hashtags e CTAs;
+- preparar e, futuramente, publicar conteúdo em múltiplas plataformas;
+- medir desempenho e usar os dados para melhorar a seleção de conteúdo.
 
-- Sprint 1 — Foundation
-- Sprint 2 — Video Engine
-- Sprint 3 — AI Analysis
-- Sprint 4 — Content Generation
-- Sprint 5 — YouTube
-- Sprint 6 — Instagram
-- Sprint 7 — TikTok
-- Sprint 8 — Dashboard
-- Sprint 9 — Analytics
-- Sprint 10 — Monetization
+## Status
 
-## Princípios
+**Sprint 1 — Foundation** em validação.
 
-- Código e documentação versionados no GitHub.
-- Vídeos e arquivos pesados ficam fora do repositório.
-- Segredos e tokens nunca são versionados.
-- Cada Sprint deve ser testada e validada antes de avançar.
+## Desenvolvimento
+
+O código fica em `src/fifa_content_engine` e os testes em `tests`.
+
+Nunca versionar vídeos, credenciais, tokens ou arquivos temporários. Use `.env` localmente a partir de `.env.example`.
+
+## Próxima etapa
+
+Depois da validação da Foundation: **Sprint 2 — Video Engine**.
