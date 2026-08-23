@@ -13,10 +13,10 @@ Criar uma base limpa, segura e extensível para o FIFA Content Engine.
 - [x] Configuração Python
 - [x] Pacote principal
 - [x] Teste smoke inicial
-- [ ] Estrutura completa de módulos
-- [ ] Configuração de lint/format
-- [ ] Pipeline CI
-- [ ] Configuração inicial do Video Engine
+- [x] Estrutura completa de módulos
+- [x] Configuração de lint/format
+- [x] Pipeline CI
+- [x] Configuração inicial do Video Engine
 
 ## Critério de conclusão
 

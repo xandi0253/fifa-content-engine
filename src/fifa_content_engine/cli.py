@@ -5,7 +5,7 @@ from .config import get_settings
 
 def main() -> None:
     settings = get_settings()
-    print(f"{settings.app_name} | ambiente={settings.app_env}")
+    print(f"{settings.app_name} | ambiente={settings.environment}")
 
 
 if __name__ == "__main__":
