@@ -7,7 +7,12 @@ name = "fifa-content-engine"
 version = "0.1.0"
 description = "Automação inteligente de conteúdo para FIFA 26"
 requires-python = ">=3.11"
-dependencies = ["openai>=1.40"]
+dependencies = [
+    "openai>=1.40",
+    "google-api-python-client>=2.140",
+    "google-auth-oauthlib>=1.2",
+    "google-auth-httplib2>=0.2",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
