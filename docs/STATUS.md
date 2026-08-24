@@ -2,19 +2,16 @@
 
 ## Sprint atual
 
-**Sprint 5 — YouTube (concluída)**
+**Sprint 6 — Instagram (concluída)**
 
 ## Estado
 
-Publishing Engine implementado para o YouTube: autenticação OAuth 2.0
-(installed-app flow, com token reutilizado entre execuções), montagem de
-metadados (título/descrição/tags/categoria/privacidade) e upload via
-YouTube Data API v3. Uma `PublishingQueue` processa vários clipes isolando
-falhas por item. Testes cobrem tudo com um publisher falso (mock), sem
-depender de credenciais reais nem do fluxo OAuth interativo.
+Publishing Engine estendido para o Instagram (Reels): interface
+`MediaHoster` (contrato plugável, sem implementação concreta ainda — a
+hospedagem real fica para configurar depois), cliente da Instagram Graph
+API (contêiner de mídia, polling de status, publicação, permalink), e
+`InstagramPublisher` orquestrando o fluxo completo. Testes cobrem tudo
+com mocks, sem depender de credenciais reais nem chamadas de rede.
 
-Privacidade padrão dos vídeos: `public`. Recomenda-se testar com
-`private`/`unlisted` antes de publicar em produção.
-
-Próximo foco: Sprint 6 — Instagram (integração com a API do Instagram
-para publicação dos clipes como Reels).
+Próximo foco: Sprint 7 — TikTok (integração com a API do TikTok para
+publicação dos clipes).
