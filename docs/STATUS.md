@@ -2,15 +2,16 @@
 
 ## Sprint atual
 
-**Sprint 2 — Video Engine (concluída)**
+**Sprint 3 — AI Analysis (concluída)**
 
 ## Estado
 
-Video Engine implementado com ffmpeg/ffprobe via subprocess: validação real
-de arquivos (extensão + stream de vídeo via ffprobe), normalização para
-mp4/h264/aac, e detecção de mudanças de cena usando o filtro nativo do
-ffmpeg. Tudo coberto por testes de ponta a ponta com vídeo sintético gerado
-via lavfi, sem depender de arquivos externos.
+AI Engine implementado com a API de visão da OpenAI (GPT-4o): extração de
+frames nos timestamps candidatos (via ffmpeg), classificação de cada frame
+em um momento estruturado (relevante ou não, tipo, score, título e
+descrição), e um analisador (`AIMomentAnalyzer`) que orquestra o pipeline
+completo. Testes cobrem tudo com um classificador falso (mock), sem
+depender de chave de API real nem gastar créditos.
 
-Próximo foco: Sprint 3 — AI Analysis (identificar momentos relevantes das
-partidas a partir dos candidatos a cena e gerar metadados de conteúdo).
+Próximo foco: Sprint 4 — Content Generation (transformar os momentos
+relevantes em conteúdo pronto: Shorts, Reels, posts).
