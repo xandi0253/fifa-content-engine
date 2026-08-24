@@ -2,16 +2,15 @@
 
 ## Sprint atual
 
-**Sprint 3 — AI Analysis (concluída)**
+**Sprint 4 — Content Generation (concluída)**
 
 ## Estado
 
-AI Engine implementado com a API de visão da OpenAI (GPT-4o): extração de
-frames nos timestamps candidatos (via ffmpeg), classificação de cada frame
-em um momento estruturado (relevante ou não, tipo, score, título e
-descrição), e um analisador (`AIMomentAnalyzer`) que orquestra o pipeline
-completo. Testes cobrem tudo com um classificador falso (mock), sem
-depender de chave de API real nem gastar créditos.
+Content Engine implementado: clipes de vídeo com duração variável (padding
+por tipo de momento, ajustado pelo score), corte via ffmpeg, e legenda/caption
+montada a partir dos dados já gerados pelo AI Engine (sem chamada extra à
+IA). `ContentGenerator` orquestra tudo, filtrando apenas moments relevantes
+e recortando a janela de corte para caber na duração real do vídeo.
 
-Próximo foco: Sprint 4 — Content Generation (transformar os momentos
-relevantes em conteúdo pronto: Shorts, Reels, posts).
+Próximo foco: Sprint 5 — YouTube (integração com a YouTube Data API v3
+para publicação automática dos clipes gerados).

@@ -1,6 +1,7 @@
 """Content Engine.
 
 Transforma eventos identificados pelo AI Engine em conteúdo pronto
-para publicação: Shorts, Reels, TikToks, posts e artigos. Implementação
-chega na Sprint 4.
+para publicação: corta um clipe de vídeo (duração variável por tipo
+e score do momento) e monta a legenda/caption. Ver generator.ContentGenerator
+para a implementação.
 """
