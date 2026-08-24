@@ -2,15 +2,19 @@
 
 ## Sprint atual
 
-**Sprint 4 — Content Generation (concluída)**
+**Sprint 5 — YouTube (concluída)**
 
 ## Estado
 
-Content Engine implementado: clipes de vídeo com duração variável (padding
-por tipo de momento, ajustado pelo score), corte via ffmpeg, e legenda/caption
-montada a partir dos dados já gerados pelo AI Engine (sem chamada extra à
-IA). `ContentGenerator` orquestra tudo, filtrando apenas moments relevantes
-e recortando a janela de corte para caber na duração real do vídeo.
+Publishing Engine implementado para o YouTube: autenticação OAuth 2.0
+(installed-app flow, com token reutilizado entre execuções), montagem de
+metadados (título/descrição/tags/categoria/privacidade) e upload via
+YouTube Data API v3. Uma `PublishingQueue` processa vários clipes isolando
+falhas por item. Testes cobrem tudo com um publisher falso (mock), sem
+depender de credenciais reais nem do fluxo OAuth interativo.
 
-Próximo foco: Sprint 5 — YouTube (integração com a YouTube Data API v3
-para publicação automática dos clipes gerados).
+Privacidade padrão dos vídeos: `public`. Recomenda-se testar com
+`private`/`unlisted` antes de publicar em produção.
+
+Próximo foco: Sprint 6 — Instagram (integração com a API do Instagram
+para publicação dos clipes como Reels).

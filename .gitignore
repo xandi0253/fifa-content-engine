@@ -10,6 +10,7 @@ env/
 .env
 .env.*
 !.env.example
+.youtube_token.json
 
 # Video/media - never commit raw media
 media/
