@@ -11,3 +11,11 @@ class YouTubeAuthError(PublishingError):
 
 class YouTubeUploadError(PublishingError):
     """Falha ao fazer upload do vídeo para o YouTube."""
+
+
+class MediaHostingError(PublishingError):
+    """Falha ao hospedar o clipe em uma URL pública."""
+
+
+class InstagramUploadError(PublishingError):
+    """Falha ao publicar o clipe no Instagram (container ou publicação)."""
