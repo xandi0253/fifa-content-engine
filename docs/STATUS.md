@@ -2,16 +2,19 @@
 
 ## Sprint atual
 
-**Sprint 6 — Instagram (concluída)**
+**Sprint 7 — TikTok (concluída)**
 
 ## Estado
 
-Publishing Engine estendido para o Instagram (Reels): interface
-`MediaHoster` (contrato plugável, sem implementação concreta ainda — a
-hospedagem real fica para configurar depois), cliente da Instagram Graph
-API (contêiner de mídia, polling de status, publicação, permalink), e
-`InstagramPublisher` orquestrando o fluxo completo. Testes cobrem tudo
-com mocks, sem depender de credenciais reais nem chamadas de rede.
+Publishing Engine estendido para o TikTok: cliente da Content Posting API
+(`init_video_post` via PULL_FROM_URL, `get_post_status` para polling) e
+`TikTokPublisher` orquestrando hospedagem (reaproveitando o `MediaHoster`
+da Sprint 6) + publicação. Testes cobrem tudo com mocks, sem depender de
+credenciais reais nem chamadas de rede.
 
-Próximo foco: Sprint 7 — TikTok (integração com a API do TikTok para
-publicação dos clipes).
+As três plataformas de vídeo do roadmap (YouTube, Instagram, TikTok)
+estão implementadas. Falta apenas configurar um `MediaHoster` concreto e
+as credenciais reais de cada plataforma para publicar de verdade.
+
+Próximo foco: Sprint 8 — Dashboard (visualização do status do pipeline
+e do conteúdo gerado/publicado).
