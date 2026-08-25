@@ -22,6 +22,7 @@ media/
 
 # Generated outputs
 output/
+.fifa_data/
 processed/
 tmp/
 logs/

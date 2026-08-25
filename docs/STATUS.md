@@ -2,19 +2,19 @@
 
 ## Sprint atual
 
-**Sprint 7 — TikTok (concluída)**
+**Sprint 8 — Dashboard (concluída)**
 
 ## Estado
 
-Publishing Engine estendido para o TikTok: cliente da Content Posting API
-(`init_video_post` via PULL_FROM_URL, `get_post_status` para polling) e
-`TikTokPublisher` orquestrando hospedagem (reaproveitando o `MediaHoster`
-da Sprint 6) + publicação. Testes cobrem tudo com mocks, sem depender de
-credenciais reais nem chamadas de rede.
+Data Layer implementado: armazenamento em arquivos JSON (`JSONStore`),
+`PipelineRepository` para registrar partidas/clipes/publicações, e um
+Dashboard via CLI (`python -m fifa_content_engine dashboard`) que mostra
+totais e taxa de sucesso das publicações por plataforma.
 
-As três plataformas de vídeo do roadmap (YouTube, Instagram, TikTok)
-estão implementadas. Falta apenas configurar um `MediaHoster` concreto e
-as credenciais reais de cada plataforma para publicar de verdade.
+Nota: a infraestrutura de persistência ainda não está conectada
+automaticamente às etapas do pipeline (Video/AI/Content/Publishing
+Engine) — os dados aparecem no dashboard apenas quando algo chama o
+`PipelineRepository` explicitamente. Ver docs/SPRINT-8.md para detalhes.
 
-Próximo foco: Sprint 8 — Dashboard (visualização do status do pipeline
-e do conteúdo gerado/publicado).
+Próximo foco: Sprint 9 — Analytics (métricas mais detalhadas sobre o
+desempenho do conteúdo publicado).
