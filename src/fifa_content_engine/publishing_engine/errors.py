@@ -19,3 +19,7 @@ class MediaHostingError(PublishingError):
 
 class InstagramUploadError(PublishingError):
     """Falha ao publicar o clipe no Instagram (container ou publicação)."""
+
+
+class TikTokUploadError(PublishingError):
+    """Falha ao publicar o clipe no TikTok (init ou status de publicação)."""
