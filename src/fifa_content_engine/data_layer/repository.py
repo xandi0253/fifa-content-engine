@@ -18,6 +18,7 @@ MATCHES_TABLE = "matches"
 CLIPS_TABLE = "clips"
 PUBLICATIONS_TABLE = "publications"
 STATS_SNAPSHOTS_TABLE = "stats_snapshots"
+REVENUE_TABLE = "revenue"
 
 
 def _new_id() -> str:
@@ -121,6 +122,33 @@ class PipelineRepository:
         )
         return snapshot_id
 
+    def record_revenue(
+        self,
+        clip_id: str,
+        platform: str,
+        amount: float,
+        currency: str = "BRL",
+        note: str | None = None,
+    ) -> str:
+        """Registra manualmente um valor de receita recebido por um clipe em
+        uma plataforma (ex: repasse de anúncios). Sem integração com APIs
+        de pagamento — o valor é informado por quem chama este método.
+        """
+        revenue_id = _new_id()
+        self.store.append(
+            REVENUE_TABLE,
+            {
+                "id": revenue_id,
+                "clip_id": clip_id,
+                "platform": platform,
+                "amount": amount,
+                "currency": currency,
+                "note": note,
+                "recorded_at": _now_iso(),
+            },
+        )
+        return revenue_id
+
     def all_matches(self) -> list[dict]:
         return self.store.read_all(MATCHES_TABLE)
 
@@ -132,3 +160,6 @@ class PipelineRepository:
 
     def all_stats_snapshots(self) -> list[dict]:
         return self.store.read_all(STATS_SNAPSHOTS_TABLE)
+
+    def all_revenue(self) -> list[dict]:
+        return self.store.read_all(REVENUE_TABLE)

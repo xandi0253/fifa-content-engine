@@ -92,3 +92,26 @@ def test_record_stats_snapshot_persists_metrics(tmp_path):
     assert snapshots[0]["id"] == snapshot_id
     assert snapshots[0]["clip_id"] == "c1"
     assert snapshots[0]["metrics"]["view_count"] == 100
+
+
+def test_record_revenue_persists_amount_and_currency(tmp_path):
+    repo = PipelineRepository(tmp_path)
+
+    revenue_id = repo.record_revenue(
+        clip_id="c1", platform="youtube", amount=125.50, currency="BRL", note="Repasse de agosto"
+    )
+
+    revenue = repo.all_revenue()
+    assert len(revenue) == 1
+    assert revenue[0]["id"] == revenue_id
+    assert revenue[0]["amount"] == 125.50
+    assert revenue[0]["currency"] == "BRL"
+    assert revenue[0]["note"] == "Repasse de agosto"
+
+
+def test_record_revenue_defaults_currency_to_brl(tmp_path):
+    repo = PipelineRepository(tmp_path)
+
+    repo.record_revenue(clip_id="c1", platform="tiktok", amount=50.0)
+
+    assert repo.all_revenue()[0]["currency"] == "BRL"
