@@ -2,19 +2,20 @@
 
 ## Sprint atual
 
-**Sprint 8 — Dashboard (concluída)**
+**Sprint 9 — Analytics (concluída)**
 
 ## Estado
 
-Data Layer implementado: armazenamento em arquivos JSON (`JSONStore`),
-`PipelineRepository` para registrar partidas/clipes/publicações, e um
-Dashboard via CLI (`python -m fifa_content_engine dashboard`) que mostra
-totais e taxa de sucesso das publicações por plataforma.
+Clientes de estatísticas implementados para as 3 plataformas (YouTube,
+Instagram, TikTok), um novo `record_stats_snapshot()` no repositório para
+guardar medições ao longo do tempo, e um relatório de desempenho
+(`python -m fifa_content_engine analytics`) que junta clipes com a
+métrica mais recente de cada plataforma, ordenado por views.
 
-Nota: a infraestrutura de persistência ainda não está conectada
-automaticamente às etapas do pipeline (Video/AI/Content/Publishing
-Engine) — os dados aparecem no dashboard apenas quando algo chama o
-`PipelineRepository` explicitamente. Ver docs/SPRINT-8.md para detalhes.
+Limitação documentada: buscar estatísticas do YouTube funciona de ponta
+a ponta (o video_id vem da própria URL salva), mas Instagram e TikTok
+exigem ids que os publishers atuais não retornam ainda (media_id/
+video_id reais) — ver docs/SPRINT-9.md.
 
-Próximo foco: Sprint 9 — Analytics (métricas mais detalhadas sobre o
-desempenho do conteúdo publicado).
+Próximo foco: Sprint 10 — Monetization (registro manual de receita por
+clipe/plataforma).
