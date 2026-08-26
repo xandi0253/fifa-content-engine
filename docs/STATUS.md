@@ -2,20 +2,27 @@
 
 ## Sprint atual
 
-**Sprint 9 — Analytics (concluída)**
+**Sprint 10 — Monetization (concluída) — ROADMAP COMPLETO**
 
 ## Estado
 
-Clientes de estatísticas implementados para as 3 plataformas (YouTube,
-Instagram, TikTok), um novo `record_stats_snapshot()` no repositório para
-guardar medições ao longo do tempo, e um relatório de desempenho
-(`python -m fifa_content_engine analytics`) que junta clipes com a
-métrica mais recente de cada plataforma, ordenado por views.
+Registro manual de receita implementado: `record_revenue()` no
+repositório, agregação por plataforma e detecção de moedas mistas em
+`monetization.py`, e o comando `python -m fifa_content_engine revenue`.
 
-Limitação documentada: buscar estatísticas do YouTube funciona de ponta
-a ponta (o video_id vem da própria URL salva), mas Instagram e TikTok
-exigem ids que os publishers atuais não retornam ainda (media_id/
-video_id reais) — ver docs/SPRINT-9.md.
+Com esta sprint, as 10 sprints do roadmap original (Foundation → Video
+Engine → AI Analysis → Content Generation → YouTube → Instagram →
+TikTok → Dashboard → Analytics → Monetization) estão implementadas e
+testadas.
 
-Próximo foco: Sprint 10 — Monetization (registro manual de receita por
-clipe/plataforma).
+## Pendências para uso em produção (fora do escopo das sprints)
+
+- Implementar um `MediaHoster` concreto (Instagram/TikTok exigem URL
+  pública do clipe)
+- Capturar media_id (Instagram) e video_id definitivo (TikTok) nas
+  publicações, para permitir analytics automatizado dessas plataformas
+- Conectar o `PipelineRepository` automaticamente às etapas do pipeline
+  (hoje precisa ser chamado explicitamente)
+- Configurar credenciais reais de cada plataforma no `.env`
+
+Ver docs/SPRINT-10.md para o detalhamento completo.

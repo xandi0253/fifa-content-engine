@@ -1,4 +1,4 @@
-"""Command-line entry point: configurações, dashboard e analytics do pipeline."""
+"""Command-line entry point: configurações, dashboard, analytics e receita do pipeline."""
 
 import argparse
 from pathlib import Path
@@ -6,6 +6,7 @@ from pathlib import Path
 from .config import get_settings
 from .data_layer.analytics import print_performance_report
 from .data_layer.dashboard import print_summary
+from .data_layer.monetization import print_revenue_summary
 from .data_layer.repository import PipelineRepository
 
 
@@ -18,6 +19,7 @@ def main() -> None:
     subparsers.add_parser(
         "analytics", help="Mostra o desempenho do conteúdo (views/likes por plataforma)"
     )
+    subparsers.add_parser("revenue", help="Mostra a receita registrada manualmente")
 
     args = parser.parse_args()
     settings = get_settings()
@@ -27,6 +29,8 @@ def main() -> None:
         print_summary(repository)
     elif args.command == "analytics":
         print_performance_report(repository)
+    elif args.command == "revenue":
+        print_revenue_summary(repository)
     else:
         print(f"{settings.app_name} | ambiente={settings.environment}")
 
