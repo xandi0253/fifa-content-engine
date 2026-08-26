@@ -17,6 +17,7 @@ from .json_store import JSONStore
 MATCHES_TABLE = "matches"
 CLIPS_TABLE = "clips"
 PUBLICATIONS_TABLE = "publications"
+STATS_SNAPSHOTS_TABLE = "stats_snapshots"
 
 
 def _new_id() -> str:
@@ -102,6 +103,24 @@ class PipelineRepository:
         )
         return publication_id
 
+    def record_stats_snapshot(self, clip_id: str, platform: str, metrics: dict) -> str:
+        """Registra uma medição pontual de métricas (views/likes/etc.) de um
+        clipe em uma plataforma. Várias chamadas ao longo do tempo permitem
+        acompanhar a evolução (ver data_layer.analytics).
+        """
+        snapshot_id = _new_id()
+        self.store.append(
+            STATS_SNAPSHOTS_TABLE,
+            {
+                "id": snapshot_id,
+                "clip_id": clip_id,
+                "platform": platform,
+                "metrics": metrics,
+                "fetched_at": _now_iso(),
+            },
+        )
+        return snapshot_id
+
     def all_matches(self) -> list[dict]:
         return self.store.read_all(MATCHES_TABLE)
 
@@ -110,3 +129,6 @@ class PipelineRepository:
 
     def all_publications(self) -> list[dict]:
         return self.store.read_all(PUBLICATIONS_TABLE)
+
+    def all_stats_snapshots(self) -> list[dict]:
+        return self.store.read_all(STATS_SNAPSHOTS_TABLE)

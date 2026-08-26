@@ -78,3 +78,17 @@ def test_ids_are_unique_across_records(tmp_path: Path):
     id2 = repo.record_match(video_path="b.mp4", duration_seconds=1.0, scene_count=0)
 
     assert id1 != id2
+
+
+def test_record_stats_snapshot_persists_metrics(tmp_path):
+    repo = PipelineRepository(tmp_path)
+
+    snapshot_id = repo.record_stats_snapshot(
+        clip_id="c1", platform="youtube", metrics={"view_count": 100, "like_count": 10}
+    )
+
+    snapshots = repo.all_stats_snapshots()
+    assert len(snapshots) == 1
+    assert snapshots[0]["id"] == snapshot_id
+    assert snapshots[0]["clip_id"] == "c1"
+    assert snapshots[0]["metrics"]["view_count"] == 100
