@@ -12,7 +12,10 @@ from pathlib import Path
 
 from .errors import YouTubeAuthError
 
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube.force-ssl",
+]
 
 
 def get_credentials(client_id: str | None, client_secret: str | None, token_path: Path):
