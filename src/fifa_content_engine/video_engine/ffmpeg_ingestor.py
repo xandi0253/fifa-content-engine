@@ -22,8 +22,13 @@ class FfmpegVideoIngestor(VideoIngestor):
          a detecção de cenas, retornando um VideoSource enriquecido.
     """
 
-    def __init__(self, output_dir: Path):
+    def __init__(
+        self,
+        output_dir: Path,
+        scene_threshold: float = scene_detection.DEFAULT_SCENE_THRESHOLD,
+    ):
         self.output_dir = output_dir
+        self.scene_threshold = scene_threshold
 
     def validate(self, source: VideoSource) -> bool:
         if source.path.suffix.lower() not in SUPPORTED_INPUT_SUFFIXES:
@@ -42,7 +47,9 @@ class FfmpegVideoIngestor(VideoIngestor):
     def prepare(self, source: VideoSource) -> VideoSource:
         probe_result = ffprobe.probe(source.path)
         normalized_path = normalize(source.path, self.output_dir)
-        scene_timestamps = scene_detection.detect_scenes(normalized_path)
+        scene_timestamps = scene_detection.detect_scenes(
+            normalized_path, threshold=self.scene_threshold
+        )
 
         return VideoSource(
             path=normalized_path,
