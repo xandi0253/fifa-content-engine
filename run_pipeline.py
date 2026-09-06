@@ -65,6 +65,19 @@ def main() -> None:
             f"1.0 (só cortes bruscos). Padrão do projeto: {scene_detection.DEFAULT_SCENE_THRESHOLD}"
         ),
     )
+    parser.add_argument(
+        "--game",
+        default=None,
+        help=(
+            "Nome do jogo (ex: 'FIFA 26', 'Call of Duty'). Usado no prompt "
+            "da IA e nas hashtags/tags. Sem isso, a análise é genérica."
+        ),
+    )
+    parser.add_argument(
+        "--burn-captions",
+        action="store_true",
+        help="Queima o título do momento no rodapé do clipe gerado.",
+    )
     args = parser.parse_args()
 
     if not args.video_path.exists():
@@ -101,7 +114,7 @@ def main() -> None:
 
     # 2. AI Engine: analisar cada cena candidata
     print(f"\n=== 2/4 — AI Engine: analisando {len(prepared.scene_timestamps)} momentos ===")
-    classifier = OpenAIFrameClassifier()
+    classifier = OpenAIFrameClassifier(game_context=args.game)
     analyzer = AIMomentAnalyzer(classifier=classifier, frame_output_dir=WORK_DIR / "frames")
 
     moments = analyzer.analyze(prepared.path, prepared.scene_timestamps)
@@ -119,7 +132,9 @@ def main() -> None:
 
     # 3. Content Engine: gerar clipes e legendas
     print(f"\n=== 3/4 — Content Engine: gerando {len(relevant_moments)} clipes ===")
-    generator = ContentGenerator(output_dir=WORK_DIR / "clips")
+    generator = ContentGenerator(
+        output_dir=WORK_DIR / "clips", game_name=args.game, burn_captions=args.burn_captions
+    )
     pieces = generator.generate(prepared.path, moments)
     print(f"Clipes gerados: {len(pieces)}")
 
@@ -142,7 +157,7 @@ def main() -> None:
         print("Para publicar de verdade, rode novamente com --publish")
         return
 
-    publisher = YouTubePublisher(privacy_status=args.privacy)
+    publisher = YouTubePublisher(privacy_status=args.privacy, game_name=args.game)
     publishing_queue = PublishingQueue(publisher=publisher)
     results = publishing_queue.publish_all(pieces)
 

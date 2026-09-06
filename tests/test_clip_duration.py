@@ -14,16 +14,16 @@ def _moment(moment_type: str, score: float) -> Moment:
 
 
 def test_gol_has_larger_padding_than_falta():
-    gol_before, gol_after = compute_clip_window(_moment("gol", 0.9))
-    falta_before, falta_after = compute_clip_window(_moment("falta", 0.9))
+    gol_before, gol_after = compute_clip_window(_moment("vitoria", 0.9))
+    falta_before, falta_after = compute_clip_window(_moment("falha", 0.9))
 
     assert gol_before > falta_before
     assert gol_after > falta_after
 
 
 def test_higher_score_produces_wider_window():
-    low_before, low_after = compute_clip_window(_moment("gol", 0.0))
-    high_before, high_after = compute_clip_window(_moment("gol", 1.0))
+    low_before, low_after = compute_clip_window(_moment("vitoria", 0.0))
+    high_before, high_after = compute_clip_window(_moment("vitoria", 1.0))
 
     assert high_before > low_before
     assert high_after > low_after

@@ -8,7 +8,7 @@ from fifa_content_engine.data_layer.analytics import (
 from fifa_content_engine.data_layer.repository import PipelineRepository
 
 
-def _make_clip(repo: PipelineRepository, moment_type: str = "gol") -> str:
+def _make_clip(repo: PipelineRepository, moment_type: str = "vitoria") -> str:
     match_id = repo.record_match(video_path="a.mp4", duration_seconds=90.0, scene_count=3)
     return repo.record_clip(
         match_id=match_id,
@@ -33,7 +33,7 @@ def test_build_performance_report_empty_without_snapshots(tmp_path: Path):
 
 def test_build_performance_report_includes_clip_and_metrics(tmp_path: Path):
     repo = PipelineRepository(tmp_path)
-    clip_id = _make_clip(repo, moment_type="gol")
+    clip_id = _make_clip(repo, moment_type="vitoria")
     repo.record_stats_snapshot(
         clip_id=clip_id, platform="youtube", metrics={"view_count": 500, "like_count": 40}
     )
@@ -42,7 +42,7 @@ def test_build_performance_report_includes_clip_and_metrics(tmp_path: Path):
 
     assert len(entries) == 1
     assert entries[0].clip_id == clip_id
-    assert entries[0].moment_type == "gol"
+    assert entries[0].moment_type == "vitoria"
     assert entries[0].platform == "youtube"
     assert entries[0].metrics["view_count"] == 500
 

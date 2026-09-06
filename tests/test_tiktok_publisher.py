@@ -19,7 +19,7 @@ def _content_piece() -> ContentPiece:
     moment = Moment(
         timestamp_seconds=10.0,
         is_relevant=True,
-        moment_type="gol",
+        moment_type="vitoria",
         score=0.9,
         title="Gol de placa",
         description="Descrição de teste.",

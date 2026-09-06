@@ -7,16 +7,23 @@ from dataclasses import dataclass
 
 from .errors import ModelResponseError
 
-# Tipos de momento que o modelo pode identificar. "outro" cobre qualquer
-# evento relevante que não se encaixe nas categorias mais comuns.
-MOMENT_TYPES = {"gol", "falta", "comemoracao", "lance_perigoso", "defesa", "outro"}
+# Taxonomia genérica de momentos, pensada para funcionar em qualquer gênero
+# de jogo (esportes, FPS, corrida, etc.), não só futebol:
+#   - vitoria: um evento de sucesso/pontuação (gol, kill, vitória de round)
+#   - quase: um momento de tensão sem resultado definido (quase gol, quase
+#     morreu, ultrapassagem na última curva)
+#   - comemoracao: celebração, cutscene de vitória, reação do jogador
+#   - falha: um erro, morte, falta ou perda que gera contraste dramático
+#   - acao_intensa: uma sequência de ação notável sem categoria mais específica
+#   - outro: qualquer evento relevante que não se encaixe nas categorias acima
+MOMENT_TYPES = {"vitoria", "quase", "comemoracao", "falha", "acao_intensa", "outro"}
 
 _REQUIRED_KEYS = {"is_relevant", "moment_type", "score", "title", "description"}
 
 
 @dataclass(frozen=True)
 class Moment:
-    """Um momento candidato da partida, já analisado pela IA."""
+    """Um momento candidato da gravação, já analisado pela IA."""
 
     timestamp_seconds: float
     is_relevant: bool

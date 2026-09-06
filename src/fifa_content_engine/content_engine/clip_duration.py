@@ -11,11 +11,11 @@ from fifa_content_engine.ai_engine.moments import Moment
 
 # (segundos_antes, segundos_depois) para cada tipo de momento.
 MOMENT_PADDING_SECONDS: dict[str, tuple[float, float]] = {
-    "gol": (8.0, 12.0),
+    "vitoria": (8.0, 12.0),
     "comemoracao": (3.0, 10.0),
-    "lance_perigoso": (5.0, 5.0),
-    "defesa": (4.0, 6.0),
-    "falta": (3.0, 5.0),
+    "quase": (5.0, 5.0),
+    "acao_intensa": (4.0, 6.0),
+    "falha": (3.0, 5.0),
     "outro": (3.0, 5.0),
 }
 

@@ -17,7 +17,7 @@ class FakeFrameClassifier(FrameClassifier):
 
 
 GOL_RESPONSE = (
-    '{"is_relevant": true, "moment_type": "gol", "score": 0.9, '
+    '{"is_relevant": true, "moment_type": "vitoria", "score": 0.9, '
     '"title": "Gol de placa", "description": "Finalização certeira."}'
 )
 IRRELEVANT_RESPONSE = (
@@ -36,7 +36,7 @@ def test_analyze_extracts_frame_and_classifies_each_timestamp(
 
     assert len(moments) == 2
     assert len(classifier.calls) == 2
-    assert moments[0].moment_type == "gol"
+    assert moments[0].moment_type == "vitoria"
     assert moments[0].is_relevant is True
     assert moments[1].is_relevant is False
 
@@ -50,7 +50,7 @@ def test_analyze_relevant_only_filters_out_irrelevant_moments(
     relevant_moments = analyzer.analyze_relevant_only(synthetic_video, timestamps=[0.5, 1.5])
 
     assert len(relevant_moments) == 1
-    assert relevant_moments[0].moment_type == "gol"
+    assert relevant_moments[0].moment_type == "vitoria"
 
 
 def test_analyze_with_no_timestamps_returns_empty(synthetic_video: Path, tmp_path: Path):
