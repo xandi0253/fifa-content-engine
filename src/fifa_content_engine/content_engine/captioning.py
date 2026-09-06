@@ -36,9 +36,23 @@ def find_available_font() -> str | None:
     return None
 
 
-def _escape_ffmpeg_text(text: str) -> str:
-    """Escapa caracteres especiais do filtro drawtext (: ' \\)."""
-    return text.replace("\\", "\\\\").replace(":", "\\:").replace("'", "\\'")
+def _escape_ffmpeg_value(value: str) -> str:
+    """Escapa caracteres especiais do parser de filtros do ffmpeg.
+
+    Escapa barra invertida, dois pontos (importante para caminhos do
+    Windows como C:/...), apóstrofo, vírgula e porcentagem -- todos têm
+    significado especial na sintaxe de filtros do ffmpeg. Sem aspas ao
+    redor: o próprio subprocess já passa o argumento intacto (sem shell),
+    e envolver em aspas simples não protege o ':' da letra de unidade do
+    Windows (ex: "C:") do parser interno do ffmpeg.
+    """
+    return (
+        value.replace("\\", "\\\\")
+        .replace(":", "\\:")
+        .replace("'", "\\'")
+        .replace(",", "\\,")
+        .replace("%", "\\%")
+    )
 
 
 def burn_caption(
@@ -64,9 +78,10 @@ def burn_caption(
         raise ContentGenerationError(f"Arquivo de fonte não encontrado: {resolved_font}")
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    escaped_text = _escape_ffmpeg_text(text)
+    escaped_font = _escape_ffmpeg_value(resolved_font)
+    escaped_text = _escape_ffmpeg_value(text)
     drawtext_filter = (
-        f"drawtext=fontfile='{resolved_font}':text='{escaped_text}':"
+        f"drawtext=fontfile={escaped_font}:text={escaped_text}:"
         "fontcolor=white:fontsize=28:borderw=2:bordercolor=black:"
         "x=(w-text_w)/2:y=h-th-30"
     )
