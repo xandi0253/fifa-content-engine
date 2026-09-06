@@ -37,22 +37,17 @@ def find_available_font() -> str | None:
 
 
 def _escape_ffmpeg_value(value: str) -> str:
-    """Escapa caracteres especiais do parser de filtros do ffmpeg.
+    """Escapa e envolve em aspas simples um valor para uso em filtros do ffmpeg.
 
-    Escapa barra invertida, dois pontos (importante para caminhos do
-    Windows como C:/...), apóstrofo, vírgula e porcentagem -- todos têm
-    significado especial na sintaxe de filtros do ffmpeg. Sem aspas ao
-    redor: o próprio subprocess já passa o argumento intacto (sem shell),
-    e envolver em aspas simples não protege o ':' da letra de unidade do
-    Windows (ex: "C:") do parser interno do ffmpeg.
+    A combinação de AMBOS -- escapar ':' com barra invertida E envolver o
+    valor inteiro em aspas simples -- é necessária. Usar só um dos dois
+    não é suficiente: aspas sozinhas não protegem o ':' da letra de
+    unidade do Windows (ex: "C:") do parser de opções do filtro, e escapar
+    sem aspas também falha. Confirmado testando com um caminho real
+    contendo ':' (reproduzindo o cenário do Windows).
     """
-    return (
-        value.replace("\\", "\\\\")
-        .replace(":", "\\:")
-        .replace("'", "\\'")
-        .replace(",", "\\,")
-        .replace("%", "\\%")
-    )
+    escaped = value.replace("\\", "\\\\").replace(":", "\\:").replace("'", "\\'")
+    return f"'{escaped}'"
 
 
 def burn_caption(
