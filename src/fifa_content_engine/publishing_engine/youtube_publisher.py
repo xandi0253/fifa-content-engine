@@ -30,11 +30,13 @@ class YouTubePublisher(VideoPublisher):
         client_secret: str | None = None,
         token_path: Path = DEFAULT_TOKEN_PATH,
         privacy_status: str = DEFAULT_PRIVACY_STATUS,
+        game_name: str | None = None,
     ):
         self.client_id = client_id or os.getenv("YOUTUBE_CLIENT_ID")
         self.client_secret = client_secret or os.getenv("YOUTUBE_CLIENT_SECRET")
         self.token_path = token_path
         self.privacy_status = privacy_status
+        self.game_name = game_name
         self._client = None
 
     @property
@@ -50,7 +52,9 @@ class YouTubePublisher(VideoPublisher):
         from googleapiclient.errors import HttpError
         from googleapiclient.http import MediaFileUpload
 
-        metadata = build_video_metadata(content_piece, privacy_status=self.privacy_status)
+        metadata = build_video_metadata(
+            content_piece, privacy_status=self.privacy_status, game_name=self.game_name
+        )
         media = MediaFileUpload(str(content_piece.clip_path), chunksize=-1, resumable=True)
 
         try:
