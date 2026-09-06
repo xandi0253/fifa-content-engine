@@ -21,7 +21,7 @@ def test_build_summary_counts_records_correctly(tmp_path: Path):
     clip_id = repo.record_clip(
         match_id=match_id,
         timestamp_seconds=10.0,
-        moment_type="gol",
+        moment_type="vitoria",
         score=0.9,
         title="x",
         description="y",

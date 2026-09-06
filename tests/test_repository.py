@@ -22,7 +22,7 @@ def test_record_clip_persists_with_match_reference(tmp_path: Path):
     clip_id = repo.record_clip(
         match_id=match_id,
         timestamp_seconds=12.0,
-        moment_type="gol",
+        moment_type="vitoria",
         score=0.9,
         title="Gol de placa",
         description="Descrição",
@@ -34,7 +34,7 @@ def test_record_clip_persists_with_match_reference(tmp_path: Path):
     assert len(clips) == 1
     assert clips[0]["id"] == clip_id
     assert clips[0]["match_id"] == match_id
-    assert clips[0]["moment_type"] == "gol"
+    assert clips[0]["moment_type"] == "vitoria"
 
 
 def test_record_publication_persists_with_clip_reference(tmp_path: Path):
@@ -42,7 +42,7 @@ def test_record_publication_persists_with_clip_reference(tmp_path: Path):
     clip_id = repo.record_clip(
         match_id="m1",
         timestamp_seconds=12.0,
-        moment_type="gol",
+        moment_type="vitoria",
         score=0.9,
         title="x",
         description="y",

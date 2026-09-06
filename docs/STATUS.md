@@ -2,18 +2,20 @@
 
 ## Sprint atual
 
-**Sprint 10 — Monetization (concluída) — ROADMAP COMPLETO**
+**Sprint 11 — Generalização multi-jogo + legendas automáticas (concluída)**
 
 ## Estado
 
-Registro manual de receita implementado: `record_revenue()` no
-repositório, agregação por plataforma e detecção de moedas mistas em
-`monetization.py`, e o comando `python -m fifa_content_engine revenue`.
+Roadmap original (10 sprints) completo e **validado com dados reais**:
+rodou o pipeline inteiro com gravação real de FIFA 26, incluindo
+autenticação OAuth de verdade, chamada real à API da OpenAI, e publicação
+real (e depois pública) no YouTube.
 
-Com esta sprint, as 10 sprints do roadmap original (Foundation → Video
-Engine → AI Analysis → Content Generation → YouTube → Instagram →
-TikTok → Dashboard → Analytics → Monetization) estão implementadas e
-testadas.
+A partir daí, o projeto entrou em uma segunda fase: transformar-se em um
+produto para qualquer jogo, não só FIFA. Sprint 11 é o primeiro passo
+dessa fase — generalização da taxonomia de momentos, do prompt da IA, das
+hashtags/tags, e legendas automáticas queimadas no clipe. Ver
+docs/SPRINT-11.md.
 
 ## Pendências para uso em produção (fora do escopo das sprints)
 
@@ -25,4 +27,10 @@ testadas.
   (hoje precisa ser chamado explicitamente)
 - Configurar credenciais reais de cada plataforma no `.env`
 
-Ver docs/SPRINT-10.md para o detalhamento completo.
+## Pendências para virar produto multi-usuário (visão de longo prazo)
+
+- Torcida/efeitos sonoros, narração automática (fora do escopo da Sprint 11)
+- Multi-usuário, assinatura, billing
+- Interface (app/web) para uso sem precisar mexer em código
+
+Ver docs/SPRINT-10.md e docs/SPRINT-11.md para o detalhamento completo.

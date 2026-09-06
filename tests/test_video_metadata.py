@@ -5,7 +5,7 @@ from fifa_content_engine.content_engine.content_piece import ContentPiece
 from fifa_content_engine.publishing_engine.video_metadata import build_video_metadata
 
 
-def _content_piece(title: str, moment_type: str = "gol") -> ContentPiece:
+def _content_piece(title: str, moment_type: str = "vitoria") -> ContentPiece:
     moment = Moment(
         timestamp_seconds=10.0,
         is_relevant=True,
@@ -30,10 +30,22 @@ def test_build_video_metadata_uses_caption_as_description():
 
 
 def test_build_video_metadata_includes_moment_specific_tags():
-    metadata = build_video_metadata(_content_piece("Golaço", moment_type="gol"))
+    metadata = build_video_metadata(_content_piece("Golaço", moment_type="vitoria"))
 
-    assert "gol" in metadata["snippet"]["tags"]
-    assert "FIFA26" in metadata["snippet"]["tags"]
+    assert "vitoria" in metadata["snippet"]["tags"]
+    assert "gameplay" in metadata["snippet"]["tags"]
+
+
+def test_build_video_metadata_includes_game_name_tag_when_provided():
+    metadata = build_video_metadata(_content_piece("Golaço"), game_name="FIFA 26")
+
+    assert "FIFA 26" in metadata["snippet"]["tags"]
+
+
+def test_build_video_metadata_uses_gaming_category_by_default():
+    metadata = build_video_metadata(_content_piece("Golaço"))
+
+    assert metadata["snippet"]["categoryId"] == "20"
 
 
 def test_build_video_metadata_truncates_long_title():

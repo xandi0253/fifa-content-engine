@@ -29,3 +29,32 @@ def test_classifier_prefers_explicit_key_over_env(monkeypatch):
     classifier = OpenAIFrameClassifier(api_key="sk-explicit-key")
 
     assert classifier.api_key == "sk-explicit-key"
+
+
+def test_build_system_prompt_is_generic_without_game_context():
+    from fifa_content_engine.ai_engine.openai_classifier import build_system_prompt
+
+    prompt = build_system_prompt()
+
+    assert "gameplay" in prompt.lower()
+    assert "fifa" not in prompt.lower()
+
+
+def test_build_system_prompt_mentions_game_when_provided():
+    from fifa_content_engine.ai_engine.openai_classifier import build_system_prompt
+
+    prompt = build_system_prompt(game_context="FIFA 26")
+
+    assert "FIFA 26" in prompt
+
+
+def test_classifier_uses_generic_prompt_by_default():
+    classifier = OpenAIFrameClassifier(api_key="fake-key")
+
+    assert "fifa" not in classifier.system_prompt.lower()
+
+
+def test_classifier_uses_game_specific_prompt_when_given():
+    classifier = OpenAIFrameClassifier(api_key="fake-key", game_context="Call of Duty")
+
+    assert "Call of Duty" in classifier.system_prompt
