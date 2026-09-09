@@ -31,6 +31,7 @@ load_env_file(Path(".env"))
 
 from fifa_content_engine.ai_engine.analyzer import AIMomentAnalyzer  # noqa: E402
 from fifa_content_engine.ai_engine.openai_classifier import OpenAIFrameClassifier  # noqa: E402
+from fifa_content_engine.content_engine.compilation import build_compilation_piece  # noqa: E402
 from fifa_content_engine.content_engine.generator import ContentGenerator  # noqa: E402
 from fifa_content_engine.data_layer.repository import PipelineRepository  # noqa: E402
 from fifa_content_engine.publishing_engine.queue import PublishingQueue  # noqa: E402
@@ -137,6 +138,13 @@ def main() -> None:
     )
     pieces = generator.generate(prepared.path, moments)
     print(f"Clipes gerados: {len(pieces)}")
+
+    if len(pieces) > 1:
+        print(f"Combinando {len(pieces)} clipes em um único vídeo de melhores momentos...")
+        pieces = [
+            build_compilation_piece(pieces, output_dir=WORK_DIR / "clips", game_name=args.game)
+        ]
+        print(f"Vídeo combinado: {pieces[0].clip_path}")
 
     for piece in pieces:
         repository.record_clip(
