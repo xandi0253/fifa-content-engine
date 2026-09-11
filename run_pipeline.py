@@ -39,6 +39,7 @@ from fifa_content_engine.publishing_engine.youtube_publisher import YouTubePubli
 from fifa_content_engine.video_engine import scene_detection  # noqa: E402
 from fifa_content_engine.video_engine.ffmpeg_ingestor import FfmpegVideoIngestor  # noqa: E402
 from fifa_content_engine.video_engine.ingestion import VideoSource  # noqa: E402
+from fifa_content_engine.video_engine.trimming import trim_video  # noqa: E402
 
 WORK_DIR = Path(".fifa_pipeline_work")
 
@@ -79,7 +80,23 @@ def main() -> None:
         action="store_true",
         help="Queima o título do momento no rodapé do clipe gerado.",
     )
+    parser.add_argument(
+        "--start-minute",
+        type=float,
+        default=None,
+        help="Corta o vídeo a partir deste minuto antes de processar (ex: 32).",
+    )
+    parser.add_argument(
+        "--end-minute",
+        type=float,
+        default=None,
+        help="Corta o vídeo até este minuto antes de processar (ex: 37).",
+    )
     args = parser.parse_args()
+
+    if (args.start_minute is None) != (args.end_minute is None):
+        print("Erro: --start-minute e --end-minute precisam ser usados juntos.")
+        sys.exit(1)
 
     if not args.video_path.exists():
         print(f"Erro: arquivo não encontrado: {args.video_path}")
@@ -87,12 +104,26 @@ def main() -> None:
 
     repository = PipelineRepository(Path(os.getenv("DATA_DIR", ".fifa_data")))
 
+    input_video_path = args.video_path
+    if args.start_minute is not None:
+        print(
+            f"\n=== 0/4 — Cortando trecho: {args.start_minute:.1f}min "
+            f"até {args.end_minute:.1f}min ==="
+        )
+        input_video_path = trim_video(
+            args.video_path,
+            start_seconds=args.start_minute * 60,
+            end_seconds=args.end_minute * 60,
+            output_dir=WORK_DIR / "trimmed",
+        )
+        print(f"Trecho cortado: {input_video_path}")
+
     # 1. Video Engine: validar e normalizar o vídeo, detectar cenas
-    print(f"\n=== 1/4 — Video Engine: processando {args.video_path.name} ===")
+    print(f"\n=== 1/4 — Video Engine: processando {input_video_path.name} ===")
     ingestor = FfmpegVideoIngestor(
         output_dir=WORK_DIR / "normalized", scene_threshold=args.scene_threshold
     )
-    source = VideoSource(path=args.video_path)
+    source = VideoSource(path=input_video_path)
 
     if not ingestor.validate(source):
         print("Erro: vídeo não passou na validação (formato não suportado ou arquivo inválido).")
