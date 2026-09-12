@@ -23,6 +23,7 @@ media/
 # Generated outputs
 output/
 .fifa_data/
+.fifa_pipeline_work/
 processed/
 tmp/
 logs/

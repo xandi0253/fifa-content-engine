@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FIFA Content Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0E1116;
+      --surface: #171B22;
+      --surface-raised: #1F2530;
+      --border: #2A3140;
+      --accent: #FFC93C;
+      --accent-teal: #35B0AB;
+      --text: #EDEFF3;
+      --text-muted: #8791A3;
+      --success: #4ADE80;
+      --error: #F2545B;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+    header {
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    header .mark {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.02em;
+      color: var(--accent);
+    }
+    header .sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    main {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 0;
+      min-height: calc(100vh - 65px);
+    }
+    @media (max-width: 820px) {
+      main { grid-template-columns: 1fr; }
+    }
+    .panel {
+      padding: 32px;
+    }
+    .panel.config {
+      border-right: 1px solid var(--border);
+    }
+    .panel-label {
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      margin: 0 0 20px;
+    }
+    .field { margin-bottom: 18px; }
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .field input[type="text"],
+    .field select {
+      width: 100%;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 9px 11px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .field input[type="text"]:focus,
+    .field select:focus {
+      outline: 2px solid var(--accent-teal);
+      outline-offset: 1px;
+      border-color: var(--accent-teal);
+    }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 13px;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+    .checkbox-row input { width: 16px; height: 16px; accent-color: var(--accent); }
+    .run-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #171100;
+      border: none;
+      border-radius: 6px;
+      padding: 13px;
+      font-family: 'Oswald', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .run-btn:hover { background: #ffd75c; }
+    .run-btn:disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
+
+    .monitor-empty {
+      color: var(--text-muted);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+    }
+    .log-line {
+      display: flex;
+      gap: 10px;
+      align-items: baseline;
+      font-size: 13px;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    .log-line .n {
+      font-family: 'Oswald', sans-serif;
+      color: var(--accent-teal);
+      font-size: 12px;
+      min-width: 20px;
+    }
+    .result-card {
+      margin-top: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+    }
+    .result-card .title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      margin: 0 0 6px;
+    }
+    .result-card .desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin: 0 0 12px;
+    }
+    .status-line { font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .status-line.success { color: var(--success); }
+    .status-line.pending { color: var(--text-muted); }
+    .status-line.error { color: var(--error); }
+    a.watch-link { color: var(--accent-teal); }
+    .error-box {
+      margin-top: 18px;
+      border: 1px solid var(--error);
+      background: rgba(242, 84, 91, 0.08);
+      border-radius: 6px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: var(--error);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="mark">FIFA CONTENT ENGINE</span>
+    <span class="sub">gerador local de highlights</span>
+  </header>
+
+  <main>
+    <section class="panel config">
+      <p class="panel-label">CONFIGURAR</p>
+
+      <div class="field">
+        <label for="video-path">Caminho do arquivo de vídeo</label>
+        <input type="text" id="video-path" placeholder="C:\canal_futebol\partida.mp4">
+      </div>
+
+      <div class="field">
+        <label for="game">Jogo</label>
+        <input type="text" id="game" placeholder="FIFA 26">
+      </div>
+
+      <div class="field">
+        <label for="privacy">Privacidade no YouTube</label>
+        <select id="privacy">
+          <option value="private" selected>Privado</option>
+          <option value="unlisted">Não listado</option>
+          <option value="public">Público</option>
+        </select>
+      </div>
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="burn-captions" checked>
+        <label for="burn-captions" style="margin:0;">Queimar legenda nos clipes</label>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="publish">
+        <label for="publish" style="margin:0;">Publicar de verdade no YouTube</label>
+      </div>
+
+      <button class="run-btn" id="run-btn">Gerar highlights</button>
+    </section>
+
+    <section class="panel">
+      <p class="panel-label">MONITOR</p>
+      <div id="monitor-empty" class="monitor-empty">Configure e clique em "Gerar highlights"</div>
+      <div id="log" style="display:none;"></div>
+      <div id="result" style="display:none;"></div>
+      <div id="error-box" class="error-box" style="display:none;"></div>
+    </section>
+  </main>
+
+  <script>
+    const runBtn = document.getElementById('run-btn');
+    const monitorEmpty = document.getElementById('monitor-empty');
+    const logEl = document.getElementById('log');
+    const resultEl = document.getElementById('result');
+    const errorBox = document.getElementById('error-box');
+
+    let pollTimer = null;
+    let renderedLogCount = 0;
+
+    function resetMonitor() {
+      logEl.innerHTML = '';
+      logEl.style.display = 'none';
+      resultEl.style.display = 'none';
+      resultEl.innerHTML = '';
+      errorBox.style.display = 'none';
+      monitorEmpty.style.display = 'flex';
+      renderedLogCount = 0;
+    }
+
+    function appendLogLines(lines) {
+      for (let i = renderedLogCount; i < lines.length; i++) {
+        const row = document.createElement('div');
+        row.className = 'log-line';
+        row.innerHTML = '<span class="n">' + String(i + 1).padStart(2, '0') + '</span><span>' + lines[i] + '</span>';
+        logEl.appendChild(row);
+      }
+      renderedLogCount = lines.length;
+    }
+
+    function renderResult(job) {
+      if (job.stopped_reason) {
+        resultEl.innerHTML = '<div class="result-card"><p class="status-line pending">' + job.stopped_reason + '</p></div>';
+        resultEl.style.display = 'block';
+        return;
+      }
+      if (!job.content_piece) return;
+
+      let statusHtml;
+      if (job.publish_url) {
+        statusHtml = '<p class="status-line success">Publicado — <a class="watch-link" href="' + job.publish_url + '" target="_blank">assistir no YouTube</a></p>';
+      } else if (job.publish_error) {
+        statusHtml = '<p class="status-line error">Falha ao publicar: ' + job.publish_error + '</p>';
+      } else {
+        statusHtml = '<p class="status-line pending">Gerado localmente (modo simulação)</p>';
+      }
+
+      resultEl.innerHTML =
+        '<div class="result-card">' +
+          '<p class="title">' + job.content_piece.title + '</p>' +
+          '<p class="desc">' + job.content_piece.description + '</p>' +
+          statusHtml +
+        '</div>';
+      resultEl.style.display = 'block';
+    }
+
+    function poll(jobId) {
+      pollTimer = setInterval(async () => {
+        const response = await fetch('/status/' + jobId);
+        const job = await response.json();
+
+        if (job.error && job.status !== 'error') {
+          clearInterval(pollTimer);
+          errorBox.textContent = job.error;
+          errorBox.style.display = 'block';
+          runBtn.disabled = false;
+          return;
+        }
+
+        appendLogLines(job.log || []);
+
+        if (job.status === 'done') {
+          clearInterval(pollTimer);
+          renderResult(job);
+          runBtn.disabled = false;
+        } else if (job.status === 'error') {
+          clearInterval(pollTimer);
+          errorBox.textContent = job.error || 'Erro desconhecido.';
+          errorBox.style.display = 'block';
+          runBtn.disabled = false;
+        }
+      }, 1000);
+    }
+
+    runBtn.addEventListener('click', async () => {
+      const videoPath = document.getElementById('video-path').value.trim();
+      if (!videoPath) {
+        alert('Informe o caminho do arquivo de vídeo.');
+        return;
+      }
+
+      resetMonitor();
+      monitorEmpty.style.display = 'none';
+      logEl.style.display = 'block';
+      runBtn.disabled = true;
+
+      const payload = {
+        video_path: videoPath,
+        game: document.getElementById('game').value.trim(),
+        privacy: document.getElementById('privacy').value,
+        burn_captions: document.getElementById('burn-captions').checked,
+        publish: document.getElementById('publish').checked,
+      };
+
+      const response = await fetch('/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        errorBox.textContent = errData.error || 'Erro ao iniciar o processamento.';
+        errorBox.style.display = 'block';
+        runBtn.disabled = false;
+        return;
+      }
+
+      const { job_id } = await response.json();
+      poll(job_id);
+    });
+  </script>
+</body>
+</html>
