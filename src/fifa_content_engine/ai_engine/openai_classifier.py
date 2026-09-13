@@ -11,7 +11,7 @@ from .classifier import FrameClassifier
 from .errors import ModelResponseError
 from .moments import MOMENT_TYPES
 
-DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o")
+DEFAULT_MODEL = "gpt-4o"
 DEFAULT_MAX_RETRIES = 1
 
 _MOMENT_TYPES_LIST = ", ".join(f'"{t}"' for t in sorted(MOMENT_TYPES))
@@ -57,7 +57,7 @@ class OpenAIFrameClassifier(FrameClassifier):
         max_retries: int | None = None,
     ):
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        self.model = model or DEFAULT_MODEL
+        self.model = model or os.getenv("OPENAI_MODEL", DEFAULT_MODEL)
         self.max_retries = (
             max(0, max_retries)
             if max_retries is not None
