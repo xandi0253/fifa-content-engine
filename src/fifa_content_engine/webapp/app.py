@@ -14,7 +14,7 @@ import threading
 import uuid
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, render_template, request, send_file
 from werkzeug.utils import secure_filename
 
 from fifa_content_engine.ai_engine.errors import ModelResponseError
@@ -170,6 +170,20 @@ def status(job_id: str):
         if job is None:
             return jsonify({"error": "Job não encontrado."}), 404
         return jsonify(dict(job))
+
+
+@app.route("/download/<job_id>")
+def download(job_id: str):
+    with _jobs_lock:
+        job = _jobs.get(job_id)
+        if job is None or not job.get("content_piece"):
+            return jsonify({"error": "Resultado ainda não está disponível."}), 404
+        clip_path = Path(job["content_piece"]["clip_path"])
+
+    if not clip_path.exists():
+        return jsonify({"error": "O arquivo gerado não foi encontrado no disco."}), 404
+
+    return send_file(clip_path, as_attachment=True, download_name=clip_path.name)
 
 
 def main() -> None:
