@@ -33,6 +33,7 @@ load_env_file(Path(".env"))
 
 from fifa_content_engine.pipeline import run_pipeline  # noqa: E402
 from fifa_content_engine.video_engine import scene_detection  # noqa: E402
+from fifa_content_engine.video_engine.trimming import trim_video  # noqa: E402
 
 WORK_DIR = Path(".fifa_pipeline_work")
 
@@ -73,13 +74,41 @@ def main() -> None:
         action="store_true",
         help="Queima o título do momento no rodapé do clipe gerado.",
     )
+    parser.add_argument(
+        "--start-minute",
+        type=float,
+        default=None,
+        help="Corta o vídeo a partir deste minuto antes de processar (ex: 32).",
+    )
+    parser.add_argument(
+        "--end-minute",
+        type=float,
+        default=None,
+        help="Corta o vídeo até este minuto antes de processar (ex: 37).",
+    )
     args = parser.parse_args()
+
+    if (args.start_minute is None) != (args.end_minute is None):
+        print("Erro: --start-minute e --end-minute precisam ser usados juntos.")
+        sys.exit(1)
 
     if not args.video_path.exists():
         print(f"Erro: arquivo não encontrado: {args.video_path}")
         sys.exit(1)
 
     input_video_path = args.video_path
+    if args.start_minute is not None:
+        print(
+            f"\n=== Cortando trecho: {args.start_minute:.1f}min "
+            f"até {args.end_minute:.1f}min ==="
+        )
+        input_video_path = trim_video(
+            args.video_path,
+            start_seconds=args.start_minute * 60,
+            end_seconds=args.end_minute * 60,
+            output_dir=WORK_DIR / "trimmed",
+        )
+        print(f"Trecho cortado: {input_video_path}")
 
     def on_progress(message: str) -> None:
         print(message)

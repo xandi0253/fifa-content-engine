@@ -17,7 +17,11 @@ from .errors import SceneDetectionError
 FFMPEG_TIMEOUT_SECONDS = 600
 
 # Sensibilidade da detecção: 0.0 (tudo é cena nova) a 1.0 (só mudanças bruscas).
-DEFAULT_SCENE_THRESHOLD = 0.4
+# Sensibilidade da detecção: 0.0 (tudo é cena nova) a 1.0 (só mudanças bruscas).
+# Testado com gameplay real (FIFA 26): 0.4 é exigente demais e não detecta nada
+# em jogo aberto (câmera acompanha suavemente, sem cortes bruscos). 0.2 funciona
+# bem melhor como padrão geral para gravações de gameplay.
+DEFAULT_SCENE_THRESHOLD = 0.2
 
 _PTS_TIME_PATTERN = re.compile(r"pts_time:(?P<time>[0-9.]+)")
 
