@@ -1,0 +1,4 @@
+file 'C:\Users\User\fifa-content-engine\.fifa_pipeline_work\clips\teste_fifa_final_moment_0_comemoracao_captioned.mp4'
+file 'C:\Users\User\fifa-content-engine\.fifa_pipeline_work\clips\teste_fifa_final_moment_1_quase_captioned.mp4'
+file 'C:\Users\User\fifa-content-engine\.fifa_pipeline_work\clips\teste_fifa_final_moment_2_comemoracao_captioned.mp4'
+file 'C:\Users\User\fifa-content-engine\.fifa_pipeline_work\clips\teste_fifa_final_moment_3_vitoria_captioned.mp4'

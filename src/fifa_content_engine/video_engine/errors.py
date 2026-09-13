@@ -15,3 +15,7 @@ class VideoConversionError(VideoEngineError):
 
 class SceneDetectionError(VideoEngineError):
     """Falha ao detectar cenas/momentos no vídeo."""
+
+
+class TrimError(VideoEngineError):
+    """Falha ao cortar um trecho específico do vídeo."""
