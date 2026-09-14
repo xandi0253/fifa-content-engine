@@ -19,20 +19,26 @@ _MOMENT_TYPES_LIST = ", ".join(f'"{t}"' for t in sorted(MOMENT_TYPES))
 
 
 def build_system_prompt(game_context: str | None = None) -> str:
-    """Monta o prompt do sistema, opcionalmente mencionando o jogo específico."""
-    game_phrase = f" de uma gravação de {game_context}" if game_context else " de uma gravação de gameplay"
+    """Monta um prompt universal, com contexto de domínio opcional."""
+    game_phrase = f" de uma gravação de {game_context}" if game_context else " de um vídeo"
     return (
         f"Você analisa um frame de vídeo{game_phrase} e identifica se ele "
-        "representa um momento relevante para gerar conteúdo de highlights "
-        "(uma vitória/pontuação, um momento de tensão, uma comemoração, uma "
-        "falha dramática, ou uma sequência de ação notável). Responda SOMENTE "
-        "com um objeto JSON, sem nenhum texto adicional, com exatamente estas "
-        "chaves:\n"
+        "representa um momento com potencial para gerar conteúdo. Não assuma "
+        "que o vídeo é gameplay: pode ser gameplay, podcast, vlog, tutorial, "
+        "esporte, entrevista, reação, review, culinária ou outro gênero. "
+        "Considere relevância, emoção, surpresa, humor, tensão, habilidade, "
+        "falha, reação humana e quebra de expectativa. Responda SOMENTE com um "
+        "objeto JSON, sem texto adicional, com exatamente estas chaves:\n"
         '- "is_relevant": true ou false\n'
         f'- "moment_type": um de {_MOMENT_TYPES_LIST}\n'
-        '- "score": número entre 0 e 1 indicando a relevância do momento\n'
-        '- "title": título curto (até 8 palavras) para o momento\n'
-        '- "description": descrição de 1 a 2 frases sobre o que acontece na cena'
+        '- "score": número entre 0 e 1 indicando o potencial geral do momento\n'
+        '- "title": título curto (até 8 palavras)\n'
+        '- "description": descrição de 1 a 2 frases\n'
+        '- "emotion": uma palavra ou expressão curta (ex.: hype, surpresa, humor, tensão, skill, vitória, falha)\n'
+        '- "emotion_score": número entre 0 e 1 indicando a intensidade emocional visível\n'
+        '- "retention_score": número entre 0 e 1 indicando o potencial de fazer alguém continuar assistindo\n'
+        "Não invente acontecimentos que não sejam visíveis no frame. Quando o contexto "
+        "for insuficiente, reduza os scores em vez de adivinhar."
     )
 
 
@@ -40,13 +46,7 @@ SYSTEM_PROMPT = build_system_prompt()
 
 
 class OpenAIFrameClassifier(FrameClassifier):
-    """Classifica frames usando OpenAI, com fallback moderno e controlado.
-
-    O caminho existente via Chat Completions é preservado. Se ele falhar ou
-    devolver conteúdo vazio, o classificador pode tentar a Responses API com
-    saída JSON estruturada. Isso evita deixar o pipeline preso a uma única
-    forma de chamada do provedor.
-    """
+    """Classifica frames usando OpenAI, com fallback moderno e controlado."""
 
     def __init__(
         self,
@@ -109,8 +109,20 @@ class OpenAIFrameClassifier(FrameClassifier):
                 "score": {"type": "number", "minimum": 0, "maximum": 1},
                 "title": {"type": "string"},
                 "description": {"type": "string"},
+                "emotion": {"type": "string"},
+                "emotion_score": {"type": "number", "minimum": 0, "maximum": 1},
+                "retention_score": {"type": "number", "minimum": 0, "maximum": 1},
             },
-            "required": ["is_relevant", "moment_type", "score", "title", "description"],
+            "required": [
+                "is_relevant",
+                "moment_type",
+                "score",
+                "title",
+                "description",
+                "emotion",
+                "emotion_score",
+                "retention_score",
+            ],
         }
         responses = getattr(self.client, "responses", None)
         if responses is None:
