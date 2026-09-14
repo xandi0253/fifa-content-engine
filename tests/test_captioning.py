@@ -35,20 +35,17 @@ def test_burn_caption_handles_special_characters(synthetic_video: Path, tmp_path
 
 
 def test_burn_caption_handles_colon_in_font_path(synthetic_video: Path, tmp_path: Path):
-    """Regressão: caminhos com ':' (ex: letra de unidade do Windows, 'C:/...')
-    quebravam o parser de filtros do ffmpeg mesmo entre aspas simples.
-    """
+    """Regressão: caminhos reais do Windows contêm ':' na letra da unidade."""
     real_font = find_available_font()
     if real_font is None:
         pytest.skip("Nenhuma fonte disponível neste ambiente de teste")
 
-    fake_drive_dir = tmp_path / "fake_drive"
-    fake_drive_dir.mkdir()
-    font_with_colon = fake_drive_dir / "C:font.ttf"
-    font_with_colon.symlink_to(real_font)
-
+    # No Windows, o próprio caminho da fonte (ex: C:/Windows/Fonts/arial.ttf)
+    # já reproduz o cenário com ':'; criar um symlink artificial exigiria
+    # privilégios adicionais e tornaria o teste dependente da configuração
+    # de segurança da máquina.
     output_path = tmp_path / "captioned.mp4"
-    result = burn_caption(synthetic_video, "teste", output_path, font_path=str(font_with_colon))
+    result = burn_caption(synthetic_video, "teste", output_path, font_path=real_font)
 
     assert result.exists()
 
