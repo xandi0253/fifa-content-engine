@@ -8,14 +8,7 @@ from dataclasses import dataclass
 from .errors import ModelResponseError
 
 # Taxonomia genérica de momentos, pensada para funcionar em qualquer gênero
-# de jogo (esportes, FPS, corrida, etc.), não só futebol:
-#   - vitoria: um evento de sucesso/pontuação (gol, kill, vitória de round)
-#   - quase: um momento de tensão sem resultado definido (quase gol, quase
-#     morreu, ultrapassagem na última curva)
-#   - comemoracao: celebração, cutscene de vitória, reação do jogador
-#   - falha: um erro, morte, falta ou perda que gera contraste dramático
-#   - acao_intensa: uma sequência de ação notável sem categoria mais específica
-#   - outro: qualquer evento relevante que não se encaixe nas categorias acima
+# de vídeo. Domínios específicos podem enriquecer a análise sem mudar este contrato.
 MOMENT_TYPES = {"vitoria", "quase", "comemoracao", "falha", "acao_intensa", "outro"}
 
 _REQUIRED_KEYS = {"is_relevant", "moment_type", "score", "title", "description"}
@@ -23,7 +16,11 @@ _REQUIRED_KEYS = {"is_relevant", "moment_type", "score", "title", "description"}
 
 @dataclass(frozen=True)
 class Moment:
-    """Um momento candidato da gravação, já analisado pela IA."""
+    """Um momento candidato da gravação, já analisado pela IA.
+
+    Os sinais editoriais são opcionais para manter compatibilidade com respostas
+    antigas do modelo. O motor de inteligência usa fallbacks quando eles não existem.
+    """
 
     timestamp_seconds: float
     is_relevant: bool
@@ -31,6 +28,22 @@ class Moment:
     score: float
     title: str
     description: str
+    emotion: str | None = None
+    emotion_score: float | None = None
+    retention_score: float | None = None
+
+
+def _optional_score(data: dict, key: str) -> float | None:
+    value = data.get(key)
+    if value is None:
+        return None
+    try:
+        score = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ModelResponseError(f"{key} inválido: {value!r}") from exc
+    if not 0.0 <= score <= 1.0:
+        raise ModelResponseError(f"{key} fora do intervalo [0, 1]: {score}")
+    return score
 
 
 def parse_model_response(raw_response: str, timestamp_seconds: float) -> Moment:
@@ -74,4 +87,7 @@ def parse_model_response(raw_response: str, timestamp_seconds: float) -> Moment:
         score=score,
         title=str(data["title"]),
         description=str(data["description"]),
+        emotion=str(data["emotion"]) if data.get("emotion") is not None else None,
+        emotion_score=_optional_score(data, "emotion_score"),
+        retention_score=_optional_score(data, "retention_score"),
     )

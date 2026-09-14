@@ -1,9 +1,11 @@
+import io
 import time
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
+from fifa_content_engine.ai_engine.errors import ModelResponseError
 from fifa_content_engine.ai_engine.moments import Moment
 from fifa_content_engine.content_engine.content_piece import ContentPiece
 from fifa_content_engine.pipeline import PipelineResult
@@ -31,7 +33,8 @@ def test_index_page_loads(client):
     response = client.get("/")
 
     assert response.status_code == 200
-    assert b"FIFA CONTENT ENGINE" in response.data
+    assert b"FIFA Content Engine" in response.data
+    assert b"Criar meus highlights" in response.data
 
 
 def test_run_without_video_path_returns_400(client):
@@ -47,6 +50,31 @@ def test_run_with_missing_file_returns_400(client, tmp_path: Path):
 
     assert response.status_code == 400
     assert "não encontrado" in response.get_json()["error"].lower()
+
+
+def test_upload_video_returns_server_path(client):
+    response = client.post(
+        "/upload",
+        data={"video": (io.BytesIO(b"fake video"), "teste.mp4")},
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 200
+    data = response.get_json()
+    assert data["filename"] == "teste.mp4"
+    assert Path(data["video_path"]).exists()
+    Path(data["video_path"]).unlink(missing_ok=True)
+
+
+def test_upload_rejects_unknown_extension(client):
+    response = client.post(
+        "/upload",
+        data={"video": (io.BytesIO(b"fake"), "teste.txt")},
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 400
+    assert "formato" in response.get_json()["error"].lower()
 
 
 def test_status_for_unknown_job_returns_404(client):
@@ -84,6 +112,53 @@ def test_run_success_flow_returns_content_piece(client, synthetic_video: Path):
     assert "Processando..." in data["log"]
 
 
+def test_download_returns_generated_clip(client, synthetic_video: Path, tmp_path: Path):
+    clip = tmp_path / "resultado.mp4"
+    clip.write_bytes(b"fake clip")
+
+    def fake_run_pipeline(video_path, **kwargs):
+        result = PipelineResult(video_path=video_path)
+        result.content_piece = ContentPiece(
+            moment=Moment(1, True, "vitoria", 0.9, "Gol", "desc"),
+            clip_path=clip,
+            caption="caption",
+        )
+        return result
+
+    with patch("fifa_content_engine.webapp.app.run_pipeline", side_effect=fake_run_pipeline):
+        response = client.post("/run", json={"video_path": str(synthetic_video)})
+        job_id = response.get_json()["job_id"]
+        _wait_for_job(client, job_id)
+
+    download = client.get(f"/download/{job_id}")
+    assert download.status_code == 200
+    assert download.data == b"fake clip"
+
+
+def test_download_resolves_relative_clip_path(client, synthetic_video: Path, tmp_path: Path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    clip = Path("resultado_relativo.mp4")
+    clip.write_bytes(b"fake relative clip")
+
+    def fake_run_pipeline(video_path, **kwargs):
+        result = PipelineResult(video_path=video_path)
+        result.content_piece = ContentPiece(
+            moment=Moment(1, True, "vitoria", 0.9, "Gol", "desc"),
+            clip_path=clip,
+            caption="caption",
+        )
+        return result
+
+    with patch("fifa_content_engine.webapp.app.run_pipeline", side_effect=fake_run_pipeline):
+        response = client.post("/run", json={"video_path": str(synthetic_video)})
+        job_id = response.get_json()["job_id"]
+        _wait_for_job(client, job_id)
+
+    download = client.get(f"/download/{job_id}")
+    assert download.status_code == 200
+    assert download.data == b"fake relative clip"
+
+
 def test_run_reports_stopped_reason(client, synthetic_video: Path):
     def fake_run_pipeline(video_path, **kwargs):
         result = PipelineResult(video_path=video_path)
@@ -99,6 +174,21 @@ def test_run_reports_stopped_reason(client, synthetic_video: Path):
     assert data["stopped_reason"] == "Nenhuma cena detectada."
 
 
+def test_run_reports_friendly_ai_error(client, synthetic_video: Path):
+    def fake_run_pipeline(video_path, **kwargs):
+        raise ModelResponseError("A OpenAI não retornou conteúdo utilizável")
+
+    with patch("fifa_content_engine.webapp.app.run_pipeline", side_effect=fake_run_pipeline):
+        response = client.post("/run", json={"video_path": str(synthetic_video)})
+        job_id = response.get_json()["job_id"]
+        data = _wait_for_job(client, job_id)
+
+    assert data["status"] == "error"
+    assert data["error_category"] == "ai"
+    assert "análise inteligente" in data["user_message"].lower()
+    assert "OpenAI" in data["error"]
+
+
 def test_run_captures_unexpected_exceptions(client, synthetic_video: Path):
     def fake_run_pipeline(video_path, **kwargs):
         raise RuntimeError("falha simulada")
@@ -110,6 +200,7 @@ def test_run_captures_unexpected_exceptions(client, synthetic_video: Path):
 
     assert data["status"] == "error"
     assert "falha simulada" in data["error"]
+    assert data["error_category"] == "unexpected"
 
 
 def test_run_with_publish_success_includes_url(client, synthetic_video: Path):

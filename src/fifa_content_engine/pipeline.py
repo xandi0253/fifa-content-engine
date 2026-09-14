@@ -1,5 +1,5 @@
 """Orquestra o pipeline completo: validação -> detecção de cena -> análise
-por IA -> clipe + legenda -> compilação -> publicação no YouTube.
+por IA -> inteligência editorial -> clipe + legenda -> compilação -> publicação.
 
 Usado tanto pelo script de linha de comando (run_pipeline.py) quanto
 pela interface web (webapp/app.py) -- a lógica mora aqui uma única vez.
@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .ai_engine.analyzer import AIMomentAnalyzer
+from .ai_engine.moment_intelligence import config_from_env, select_moments
 from .ai_engine.moments import Moment
 from .ai_engine.openai_classifier import OpenAIFrameClassifier
 from .content_engine.compilation import build_compilation_piece
@@ -59,12 +60,7 @@ def run_pipeline(
     data_dir: Path | None = None,
     on_progress: ProgressCallback = _noop,
 ) -> PipelineResult:
-    """Roda o pipeline completo em um vídeo e retorna um PipelineResult.
-
-    on_progress é chamado com uma mensagem de texto a cada etapa relevante,
-    para permitir acompanhar o andamento (usado pela interface web para
-    reportar progresso em tempo real).
-    """
+    """Roda o pipeline completo em um vídeo e retorna um PipelineResult."""
     if not video_path.exists():
         raise FileNotFoundError(f"Arquivo não encontrado: {video_path}")
 
@@ -117,12 +113,25 @@ def run_pipeline(
         on_progress(result.stopped_reason)
         return result
 
-    # 3. Content Engine
-    on_progress(f"Gerando {len(relevant_moments)} clipe(s)...")
+    # 3. Moment Intelligence
+    intelligence_config = config_from_env()
+    selected_moments = select_moments(relevant_moments, intelligence_config)
+    on_progress(
+        f"Inteligência editorial: {len(selected_moments)} momento(s) selecionado(s) "
+        f"de {len(relevant_moments)}, priorizando variedade, emoção e retenção."
+    )
+
+    if not selected_moments:
+        result.stopped_reason = "Nenhum momento passou pela seleção editorial."
+        on_progress(result.stopped_reason)
+        return result
+
+    # 4. Content Engine
+    on_progress(f"Gerando {len(selected_moments)} clipe(s)...")
     generator = ContentGenerator(
         output_dir=work_dir / "clips", game_name=game, burn_captions=burn_captions
     )
-    pieces = generator.generate(prepared.path, moments)
+    pieces = generator.generate(prepared.path, selected_moments)
 
     if len(pieces) > 1:
         on_progress(f"Combinando {len(pieces)} clipes em um vídeo de melhores momentos...")
@@ -143,7 +152,7 @@ def run_pipeline(
         caption=piece.caption,
     )
 
-    # 4. Publishing Engine
+    # 5. Publishing Engine
     if not publish:
         on_progress("Modo simulação -- nada foi publicado.")
         return result
