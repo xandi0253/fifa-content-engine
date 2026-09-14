@@ -1,3 +1,4 @@
+import io
 import time
 from pathlib import Path
 from unittest.mock import patch
@@ -32,7 +33,7 @@ def test_index_page_loads(client):
     response = client.get("/")
 
     assert response.status_code == 200
-    assert b"FIFA CONTENT ENGINE" in response.data
+    assert b"FIFA Content Engine" in response.data
     assert b"Criar meus highlights" in response.data
 
 
@@ -54,7 +55,7 @@ def test_run_with_missing_file_returns_400(client, tmp_path: Path):
 def test_upload_video_returns_server_path(client):
     response = client.post(
         "/upload",
-        data={"video": (bytes("fake video", "utf-8"), "teste.mp4")},
+        data={"video": (io.BytesIO(b"fake video"), "teste.mp4")},
         content_type="multipart/form-data",
     )
 
@@ -68,7 +69,7 @@ def test_upload_video_returns_server_path(client):
 def test_upload_rejects_unknown_extension(client):
     response = client.post(
         "/upload",
-        data={"video": (bytes("fake", "utf-8"), "teste.txt")},
+        data={"video": (io.BytesIO(b"fake"), "teste.txt")},
         content_type="multipart/form-data",
     )
 
