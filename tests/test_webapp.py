@@ -134,6 +134,30 @@ def test_download_returns_generated_clip(client, synthetic_video: Path, tmp_path
     assert download.data == b"fake clip"
 
 
+def test_download_resolves_relative_clip_path(client, synthetic_video: Path, tmp_path: Path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    clip = Path("resultado_relativo.mp4")
+    clip.write_bytes(b"fake relative clip")
+
+    def fake_run_pipeline(video_path, **kwargs):
+        result = PipelineResult(video_path=video_path)
+        result.content_piece = ContentPiece(
+            moment=Moment(1, True, "vitoria", 0.9, "Gol", "desc"),
+            clip_path=clip,
+            caption="caption",
+        )
+        return result
+
+    with patch("fifa_content_engine.webapp.app.run_pipeline", side_effect=fake_run_pipeline):
+        response = client.post("/run", json={"video_path": str(synthetic_video)})
+        job_id = response.get_json()["job_id"]
+        _wait_for_job(client, job_id)
+
+    download = client.get(f"/download/{job_id}")
+    assert download.status_code == 200
+    assert download.data == b"fake relative clip"
+
+
 def test_run_reports_stopped_reason(client, synthetic_video: Path):
     def fake_run_pipeline(video_path, **kwargs):
         result = PipelineResult(video_path=video_path)
