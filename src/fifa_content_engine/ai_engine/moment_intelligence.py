@@ -22,6 +22,7 @@ class MomentIntelligenceConfig:
     diversity_weight: float = 0.20
     novelty_weight: float = 0.15
     emotion_weight: float = 0.15
+    retention_weight: float = 0.20
 
 
 # Fallback universal quando modelos antigos ainda não retornam emoção.
@@ -46,13 +47,22 @@ def _emotion_value(moment: Moment) -> float:
     return _EMOTION_BY_TYPE.get(moment.moment_type, 0.45)
 
 
+def _retention_value(moment: Moment) -> float:
+    explicit = getattr(moment, "retention_score", None)
+    if explicit is not None:
+        return _clamp(float(explicit))
+    # Em respostas antigas, relevância + emoção são um fallback razoável.
+    return _clamp((moment.score + _emotion_value(moment)) / 2.0)
+
+
 def editorial_score(moment: Moment, selected: list[Moment], config: MomentIntelligenceConfig) -> float:
     """Calcula um score editorial sem depender do domínio do vídeo.
 
-    O score combina relevância original, emoção, novidade temporal e diversidade
-    em relação aos momentos já escolhidos.
+    O score combina relevância original, emoção, retenção, novidade temporal
+    e diversidade em relação aos momentos já escolhidos.
     """
     emotion = _emotion_value(moment)
+    retention = _retention_value(moment)
 
     if selected:
         nearest_gap = min(
@@ -66,13 +76,13 @@ def editorial_score(moment: Moment, selected: list[Moment], config: MomentIntell
 
     diversity = 1.0 / (1.0 + same_type_count)
 
-    score = (
+    return (
         moment.score
         + config.emotion_weight * emotion
+        + config.retention_weight * retention
         + config.novelty_weight * novelty
         + config.diversity_weight * diversity
     )
-    return score
 
 
 def select_moments(
@@ -90,7 +100,10 @@ def select_moments(
 
     # Primeiro momento: maior potencial bruto. Depois, a diversidade passa a
     # influenciar a escolha, evitando uma sequência de eventos quase idênticos.
-    first = max(candidates, key=lambda item: (item.score, _emotion_value(item)))
+    first = max(
+        candidates,
+        key=lambda item: (item.score, _retention_value(item), _emotion_value(item)),
+    )
     selected = [first]
     remaining = [item for item in candidates if item is not first]
 
@@ -111,6 +124,7 @@ def select_moments(
             key=lambda item: (
                 editorial_score(item, selected, config),
                 item.score,
+                _retention_value(item),
                 _emotion_value(item),
             ),
         )
@@ -128,4 +142,5 @@ def config_from_env() -> MomentIntelligenceConfig:
         diversity_weight=max(0.0, float(os.getenv("MOMENT_DIVERSITY_WEIGHT", "0.20"))),
         novelty_weight=max(0.0, float(os.getenv("MOMENT_NOVELTY_WEIGHT", "0.15"))),
         emotion_weight=max(0.0, float(os.getenv("MOMENT_EMOTION_WEIGHT", "0.15"))),
+        retention_weight=max(0.0, float(os.getenv("MOMENT_RETENTION_WEIGHT", "0.20"))),
     )
