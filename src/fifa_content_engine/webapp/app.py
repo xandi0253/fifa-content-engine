@@ -180,7 +180,14 @@ def download(job_id: str):
             return jsonify({"error": "Resultado ainda não está disponível."}), 404
         clip_path = Path(job["content_piece"]["clip_path"])
 
-    if not clip_path.exists():
+    # O pipeline pode retornar um caminho relativo. O send_file do Flask
+    # resolve caminhos relativos a partir do diretório da aplicação, que
+    # neste projeto fica em src/fifa_content_engine/webapp. Resolva primeiro
+    # a partir do diretório de trabalho do processo para apontar para o
+    # arquivo realmente criado pelo pipeline.
+    clip_path = clip_path.resolve()
+
+    if not clip_path.exists() or not clip_path.is_file():
         return jsonify({"error": "O arquivo gerado não foi encontrado no disco."}), 404
 
     return send_file(clip_path, as_attachment=True, download_name=clip_path.name)
