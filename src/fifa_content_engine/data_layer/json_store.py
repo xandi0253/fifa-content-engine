@@ -31,7 +31,7 @@ class JSONStore:
 
         try:
             return json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
+        except (json.JSONDecodeError, UnicodeError) as exc:
             raise DataLayerError(f"Arquivo de dados corrompido: {path}") from exc
 
     def append(self, table: str, record: dict) -> None:
