@@ -1,5 +1,5 @@
 """Orquestra o pipeline completo: validação -> detecção de cena -> análise
-por IA -> inteligência editorial -> clipe + legenda -> compilação -> publicação.
+por IA -> inteligência editorial -> contexto -> clipe + legenda -> compilação -> publicação.
 
 Usado tanto pelo script de linha de comando (run_pipeline.py) quanto
 pela interface web (webapp/app.py) -- a lógica mora aqui uma única vez.
@@ -13,11 +13,17 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from .ai_engine.analyzer import AIMomentAnalyzer
+from .ai_engine.context_analyzer import (
+    OpenAIContextAnalyzer,
+    context_strength,
+    extract_context_frames,
+)
 from .ai_engine.moment_intelligence import config_from_env, select_moments
 from .ai_engine.moments import Moment
 from .ai_engine.openai_classifier import OpenAIFrameClassifier
 from .content_engine.compilation import build_compilation_piece
 from .content_engine.content_piece import ContentPiece
+from .content_engine.context_window import compute_context_window, refine_context_window
 from .content_engine.generator import ContentGenerator
 from .data_layer.repository import PipelineRepository
 from .publishing_engine.queue import PublishingQueue, PublishResult
@@ -46,6 +52,62 @@ class PipelineResult:
 
 def _noop(_message: str) -> None:
     return None
+
+
+def _context_enabled() -> bool:
+    """Habilita a análise multimodal somente quando explicitamente solicitada."""
+    return os.getenv("CONTEXT_ANALYSIS_ENABLED", "false").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def _build_context_windows(
+    video_path: Path,
+    selected_moments: list[Moment],
+    video_duration: float,
+    work_dir: Path,
+    on_progress: ProgressCallback,
+) -> dict[float, object]:
+    """Analisa contexto dos momentos selecionados com fallback seguro por momento."""
+    windows: dict[float, object] = {}
+    if not selected_moments:
+        return windows
+
+    analyzer = OpenAIContextAnalyzer()
+    context_dir = work_dir / "context_frames"
+
+    for index, moment in enumerate(selected_moments, start=1):
+        try:
+            frame_paths = extract_context_frames(
+                video_path,
+                moment.timestamp_seconds,
+                video_duration,
+                context_dir,
+            )
+            analysis = analyzer.analyze(frame_paths)
+            base_window = compute_context_window(moment)
+            windows[moment.timestamp_seconds] = refine_context_window(
+                base_window,
+                setup_strength=context_strength(analysis.setup),
+                reaction_strength=context_strength(analysis.reaction),
+                confidence=analysis.confidence,
+            )
+            on_progress(
+                f"Contexto {index}/{len(selected_moments)} analisado "
+                f"(confiança: {analysis.confidence:.0%})."
+            )
+        except Exception as exc:
+            # Context Intelligence é uma melhoria editorial opcional. Um erro
+            # multimodal nunca deve derrubar o pipeline já validado.
+            on_progress(
+                f"Contexto {index}/{len(selected_moments)} indisponível; "
+                f"mantendo corte padrão. ({exc})"
+            )
+
+    return windows
 
 
 def run_pipeline(
@@ -126,12 +188,35 @@ def run_pipeline(
         on_progress(result.stopped_reason)
         return result
 
-    # 4. Content Engine
+    # 4. Context Intelligence (feature flag, com fallback seguro)
+    context_windows = None
+    if _context_enabled():
+        on_progress("Context Intelligence: analisando preparação, clímax e reação...")
+        context_windows = _build_context_windows(
+            prepared.path,
+            selected_moments,
+            result.duration_seconds,
+            work_dir,
+            on_progress,
+        )
+        if context_windows:
+            on_progress(
+                f"Context Intelligence: {len(context_windows)}/{len(selected_moments)} "
+                "momento(s) refinado(s)."
+            )
+        else:
+            on_progress("Context Intelligence indisponível; usando cortes padrão.")
+
+    # 5. Content Engine
     on_progress(f"Gerando {len(selected_moments)} clipe(s)...")
     generator = ContentGenerator(
         output_dir=work_dir / "clips", game_name=game, burn_captions=burn_captions
     )
-    pieces = generator.generate(prepared.path, selected_moments)
+    pieces = generator.generate(
+        prepared.path,
+        selected_moments,
+        context_windows=context_windows,
+    )
 
     if len(pieces) > 1:
         on_progress(f"Combinando {len(pieces)} clipes em um vídeo de melhores momentos...")
@@ -152,7 +237,7 @@ def run_pipeline(
         caption=piece.caption,
     )
 
-    # 5. Publishing Engine
+    # 6. Publishing Engine
     if not publish:
         on_progress("Modo simulação -- nada foi publicado.")
         return result
