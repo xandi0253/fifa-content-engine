@@ -10,9 +10,9 @@ from fifa_content_engine.video_engine.ffprobe import probe
 
 from .caption import build_caption
 from .captioning import burn_caption
-from .clip_duration import compute_clip_window
 from .clip_extraction import extract_clip
 from .content_piece import ContentPiece
+from .context_window import compute_context_window
 
 
 class ContentGenerator:
@@ -31,8 +31,8 @@ class ContentGenerator:
     def generate(self, video_path: Path, moments: Sequence[Moment]) -> list[ContentPiece]:
         """Gera conteúdo apenas para os moments marcados como relevantes.
 
-        A janela de corte é calculada por compute_clip_window() e sempre
-        recortada para caber dentro da duração real do vídeo. Se
+        A janela de corte é calculada pela camada de Context Intelligence e
+        sempre recortada para caber dentro da duração real do vídeo. Se
         burn_captions=True, o título do momento é queimado no rodapé do
         clipe (ver captioning.burn_caption).
         """
@@ -44,9 +44,9 @@ class ContentGenerator:
 
         pieces = []
         for index, moment in enumerate(relevant_moments):
-            before, after = compute_clip_window(moment)
-            start = max(0.0, moment.timestamp_seconds - before)
-            end = min(video_duration, moment.timestamp_seconds + after)
+            context = compute_context_window(moment)
+            start = max(0.0, moment.timestamp_seconds - context.before_seconds)
+            end = min(video_duration, moment.timestamp_seconds + context.after_seconds)
 
             clip_name = f"{video_path.stem}_moment_{index}_{moment.moment_type}"
             clip_path = extract_clip(video_path, start, end, self.output_dir, clip_name)
