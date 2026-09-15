@@ -1,18 +1,15 @@
-"""Analisa uma sequência de frames ao redor de um momento.
-
-A análise é opcional e isolada do classificador de momentos. Ela transforma
-uma sequência curta de imagens em sinais editoriais de contexto, sem alterar
-o contrato de Moment.
-"""
+"""Analisa uma sequência de frames ao redor de um momento."""
 
 from __future__ import annotations
 
 import base64
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
 from .errors import ModelResponseError
+from .frame_extraction import extract_frame
 
 
 @dataclass(frozen=True)
@@ -38,8 +35,6 @@ class OpenAIContextAnalyzer(ContextAnalyzer):
     """Analisa vários frames com visão da OpenAI em uma única solicitação."""
 
     def __init__(self, api_key: str | None = None, model: str | None = None):
-        import os
-
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         self.model = model or os.getenv("OPENAI_MODEL", "gpt-4o")
         self._client = None
@@ -105,3 +100,41 @@ class OpenAIContextAnalyzer(ContextAnalyzer):
             reaction=str(data.get("reaction", "incerto")),
             confidence=confidence,
         )
+
+
+def build_context_timestamps(
+    timestamp_seconds: float,
+    video_duration: float,
+    offsets: tuple[float, ...] = (-4.0, 0.0, 4.0),
+) -> list[float]:
+    """Cria timestamps antes/durante/depois, limitados à duração do vídeo."""
+    return [max(0.0, min(video_duration, timestamp_seconds + offset)) for offset in offsets]
+
+
+def extract_context_frames(
+    video_path: Path,
+    timestamp_seconds: float,
+    video_duration: float,
+    output_dir: Path,
+) -> list[Path]:
+    """Extrai uma amostra pequena e ordenada do contexto temporal."""
+    paths: list[Path] = []
+    for timestamp in build_context_timestamps(timestamp_seconds, video_duration):
+        path = extract_frame(video_path, timestamp, output_dir)
+        if path not in paths:
+            paths.append(path)
+    return paths
+
+
+def context_strength(value: str) -> float:
+    """Converte sinais textuais em intensidade conservadora para edição."""
+    text = value.strip().lower()
+    if text == "incerto":
+        return 0.5
+    strong = ("forte", "alta", "alto", "clímax", "decisivo", "intenso", "reação")
+    weak = ("fraco", "baixa", "baixo", "calmo", "sem reação", "nenhuma")
+    if any(word in text for word in strong):
+        return 1.0
+    if any(word in text for word in weak):
+        return 0.25
+    return 0.65
