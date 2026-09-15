@@ -1,10 +1,4 @@
-"""Calcula uma janela temporal semantica ao redor de um momento.
-
-A primeira versao preserva exatamente as regras de duracao existentes, mas
-explicita as partes editoriais do clipe: preparacao, clímax e resultado/
-reacao. Isso cria um contrato pequeno para futuras melhorias multimodais sem
-alterar o comportamento atual do pipeline.
-"""
+"""Calcula uma janela temporal semântica ao redor de um momento."""
 
 from __future__ import annotations
 
@@ -23,31 +17,49 @@ class ContextWindow:
     after_seconds: float
     setup_seconds: float
     reaction_seconds: float
+    confidence: float = 0.0
 
     @property
     def total_seconds(self) -> float:
-        """Duração total da janela, sem considerar limites do vídeo."""
         return self.before_seconds + self.after_seconds
 
 
 def compute_context_window(moment: Moment) -> ContextWindow:
-    """Retorna a janela de contexto sem alterar as regras atuais de duração.
-
-    ``before_seconds`` e ``after_seconds`` continuam vindo de
-    ``compute_clip_window``. A divisão semântica é uma camada de metadados:
-    parte do trecho anterior representa preparação e parte do trecho posterior
-    representa resultado/reação.
-    """
+    """Mantém a janela atual e explicita suas regiões editoriais."""
     before, after = compute_clip_window(moment)
-
-    # Mantemos pelo menos uma pequena região de preparação e reação quando
-    # houver espaço suficiente, sem aumentar a duração do clipe.
-    setup_seconds = min(before, max(1.0, before * 0.65)) if before > 0 else 0.0
-    reaction_seconds = min(after, max(1.0, after * 0.55)) if after > 0 else 0.0
-
     return ContextWindow(
         before_seconds=before,
         after_seconds=after,
+        setup_seconds=min(before, max(1.0, before * 0.65)) if before > 0 else 0.0,
+        reaction_seconds=min(after, max(1.0, after * 0.55)) if after > 0 else 0.0,
+    )
+
+
+def refine_context_window(
+    context: ContextWindow,
+    *,
+    setup_strength: float,
+    reaction_strength: float,
+    confidence: float,
+) -> ContextWindow:
+    """Refina a janela dentro dos limites existentes usando sinais multimodais.
+
+    Os fatores são normalizados para [0, 1]. A duração total nunca ultrapassa
+    a janela original; isso mantém a primeira integração conservadora.
+    """
+    setup = max(0.0, min(1.0, setup_strength))
+    reaction = max(0.0, min(1.0, reaction_strength))
+    confidence = max(0.0, min(1.0, confidence))
+
+    setup_seconds = context.setup_seconds * (0.75 + 0.25 * setup)
+    reaction_seconds = context.reaction_seconds * (0.75 + 0.25 * reaction)
+    before = max(setup_seconds, context.before_seconds * 0.75)
+    after = max(reaction_seconds, context.after_seconds * 0.75)
+
+    return ContextWindow(
+        before_seconds=min(before, context.before_seconds),
+        after_seconds=min(after, context.after_seconds),
         setup_seconds=setup_seconds,
         reaction_seconds=reaction_seconds,
+        confidence=confidence,
     )
