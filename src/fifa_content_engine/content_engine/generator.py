@@ -1,8 +1,8 @@
-"""Orquestra a geração de conteúdo: janela de corte, clipe e legenda por Moment."""
+"""Orquestra a geração de conteúdo, corte, legenda e contexto editorial."""
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from fifa_content_engine.ai_engine.moments import Moment
@@ -12,39 +12,36 @@ from .caption import build_caption
 from .captioning import burn_caption
 from .clip_extraction import extract_clip
 from .content_piece import ContentPiece
-from .context_window import compute_context_window
+from .context_window import ContextWindow, compute_context_window
 
 
 class ContentGenerator:
     """Gera um ContentPiece (clipe + legenda) para cada Moment relevante."""
 
-    def __init__(
-        self,
-        output_dir: Path,
-        game_name: str | None = None,
-        burn_captions: bool = False,
-    ):
+    def __init__(self, output_dir: Path, game_name: str | None = None, burn_captions: bool = False):
         self.output_dir = output_dir
         self.game_name = game_name
         self.burn_captions = burn_captions
 
-    def generate(self, video_path: Path, moments: Sequence[Moment]) -> list[ContentPiece]:
-        """Gera conteúdo apenas para os moments marcados como relevantes.
+    def generate(
+        self,
+        video_path: Path,
+        moments: Sequence[Moment],
+        context_windows: Mapping[float, ContextWindow] | None = None,
+    ) -> list[ContentPiece]:
+        """Gera clipes usando contexto refinado quando fornecido.
 
-        A janela de corte é calculada pela camada de Context Intelligence e
-        sempre recortada para caber dentro da duração real do vídeo. Se
-        burn_captions=True, o título do momento é queimado no rodapé do
-        clipe (ver captioning.burn_caption).
+        Sem ``context_windows`` o comportamento permanece idêntico ao anterior.
         """
         relevant_moments = [m for m in moments if m.is_relevant]
         if not relevant_moments:
             return []
 
         video_duration = probe(video_path).duration_seconds
-
         pieces = []
         for index, moment in enumerate(relevant_moments):
-            context = compute_context_window(moment)
+            context = (context_windows or {}).get(moment.timestamp_seconds)
+            context = context or compute_context_window(moment)
             start = max(0.0, moment.timestamp_seconds - context.before_seconds)
             end = min(video_duration, moment.timestamp_seconds + context.after_seconds)
 
@@ -56,7 +53,6 @@ class ContentGenerator:
                 clip_path = burn_caption(clip_path, moment.title, captioned_path)
 
             caption = build_caption(moment, game_name=self.game_name)
-
             pieces.append(ContentPiece(moment=moment, clip_path=clip_path, caption=caption))
 
         return pieces
