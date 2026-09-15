@@ -131,10 +131,13 @@ def context_strength(value: str) -> float:
     text = value.strip().lower()
     if text == "incerto":
         return 0.5
-    strong = ("forte", "alta", "alto", "clímax", "decisivo", "intenso", "reação")
-    weak = ("fraco", "baixa", "baixo", "calmo", "sem reação", "nenhuma")
-    if any(word in text for word in strong):
-        return 1.0
+
+    # Negação/ausência deve ser avaliada antes de sinais positivos como "reação".
+    weak = ("sem reação", "nenhuma", "fraco", "baixa", "baixo", "calmo")
     if any(word in text for word in weak):
         return 0.25
+
+    strong = ("forte", "alta", "alto", "clímax", "decisivo", "intenso", "reação")
+    if any(word in text for word in strong):
+        return 1.0
     return 0.65
