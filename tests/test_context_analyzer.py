@@ -8,6 +8,7 @@ from fifa_content_engine.ai_engine.context_analyzer import (
     build_context_timestamps,
     context_strength,
 )
+from fifa_content_engine.ai_engine.errors import ModelResponseError
 
 
 def test_build_context_timestamps_preserves_temporal_order_and_video_bounds():
@@ -36,13 +37,16 @@ def test_context_analysis_is_structured():
 
 def test_openai_context_analyzer_rejects_empty_frames():
     analyzer = OpenAIContextAnalyzer(api_key="test")
-    with pytest.raises(Exception, match="Nenhum frame"):
+    with pytest.raises(ModelResponseError, match="Nenhum frame"):
         analyzer.analyze([])
 
 
-def test_openai_context_analyzer_parses_json_without_calling_provider(monkeypatch, tmp_path: Path):
+def test_openai_context_analyzer_parses_json_without_calling_provider(tmp_path: Path):
     class Message:
-        content = '{"setup":"forte", "tension":"alta", "climax":"gol", "outcome":"vitória", "reaction":"forte reação", "confidence":0.8}'
+        content = (
+            '{"setup":"forte", "tension":"alta", "climax":"gol", '
+            '"outcome":"vitória", "reaction":"forte reação", "confidence":0.8}'
+        )
 
     class Choice:
         message = Message()
