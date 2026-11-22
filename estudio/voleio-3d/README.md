@@ -30,3 +30,11 @@ Teste de regressão, dentro desta pasta:
     godot --headless --path . --script verificar.gd
 
 Este módulo funciona sem serviços pagos, IA de vídeo ou SDKs proprietários. Ferramentas reutilizadas: [Godot](https://github.com/godotengine/godot) e [FFmpeg](https://github.com/FFmpeg/FFmpeg). O pacote usa as instalações locais dessas ferramentas.
+
+## Montar um episódio por planos
+
+Exporte cada plano para MP4. Na pasta do estúdio, execute com Python 3, FFmpeg e FFprobe no PATH. Passe os vídeos na ordem em que devem aparecer. Exemplo para dois arquivos que você nomeou como lateral.mp4 e gol.mp4:
+
+    py montar.py renders/lateral.mp4 renders/gol.mp4 --saida renders/episodio.mp4
+
+O padrão é 720p a 24 fps. Use --altura 1080 para saída Full HD. A montagem preserva a proporção de cada plano, adiciona barras quando necessário e preenche com silêncio os trechos sem áudio. O vídeo final usa H.264 e AAC. Reserve espaço livre ao lado do arquivo de saída para os intermediários temporários sem perda. Para reexportar, escolha um novo nome de saída.
